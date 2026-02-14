@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BizForge - Admin Portal</title>
+    <link rel="stylesheet" href="/static/style.css?v=17">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        .login-wrapper {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
+            background: var(--bg);
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 400px;
+            background: var(--card);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: var(--clay-shadow);
+            border: 1px solid var(--border);
+            position: relative;
+            z-index: 2;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .login-logo {
+            font-size: 3rem;
+            margin-bottom: .5rem;
+        }
+
+        .login-title {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: .5rem;
+        }
+
+        .login-subtitle {
+            color: var(--accent);
+            font-size: .85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            background: rgba(108, 92, 231, 0.1);
+            padding: 4px 12px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        /* Form */
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: .8rem;
+            font-weight: 600;
+            color: var(--text-dim);
+            margin-bottom: .4rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: .85rem 1rem;
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-size: .95rem;
+            color: var(--text);
+            font-family: inherit;
+            transition: border-color .3s, box-shadow .3s;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, .15);
+        }
+
+        /* Submit button */
+        .auth-submit {
+            width: 100%;
+            padding: .9rem;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            transition: transform .2s, box-shadow .2s;
+            margin-top: 1rem;
+        }
+
+        .auth-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(108, 92, 231, .4);
+        }
+
+        .auth-submit:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Error messages */
+        .auth-message {
+            padding: .75rem 1rem;
+            border-radius: 10px;
+            font-size: .85rem;
+            display: none;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .auth-message.error {
+            display: block;
+            background: rgba(255, 82, 82, .1);
+            color: #ff5252;
+            border: 1px solid rgba(255, 82, 82, .2);
+        }
+
+        /* Back link */
+        .back-link {
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+
+        .back-link a {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: .85rem;
+        }
+
+        .back-link a:hover {
+            color: var(--text);
+        }
+
+        /* Ambient background */
+        .login-bg-dots {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body class="light-theme">
+
+    <canvas id="loginBg" class="login-bg-dots"></canvas>
+
+    <div class="login-wrapper">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="login-logo">🛡️</div>
+                <div class="login-title">BizForge</div>
+                <div class="login-subtitle">Admin Portal</div>
+            </div>
+
+            <div id="authMessage" class="auth-message"></div>
+
+            <form class="auth-form" onsubmit="handleAdminLogin(event)">
+                <div class="form-group">
+                    <label>Admin Email</label>
+                    <input type="email" id="emailInput" placeholder="admin@bizforge.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="passwordInput" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="auth-submit" id="submitBtn">Access Dashboard</button>
+            </form>
+
+            <div class="back-link">
+                <a href="/">← Return to Main Site</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showMessage(text, type) {
+            const el = document.getElementById('authMessage');
+            el.textContent = text;
+            el.className = 'auth-message ' + type;
+        }
+
+        function hideMessage() {
+            document.getElementById('authMessage').className = 'auth-message';
+        }
+
+        async function handleAdminLogin(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.textContent = 'Verifying setup...';
+            hideMessage();
+
+            const email = document.getElementById('emailInput').value;
+            const password = document.getElementById('passwordInput').value;
+
+            try {
+                // 1. Perform standard login to get session
+                const resp = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password }),
+                });
+                const data = await resp.json();
+
+                if (resp.ok && data.success) {
+                    // 2. Strict Admin Check
+                    if (data.user.is_admin) {
+                        btn.textContent = 'Redirecting...';
+                        window.location.href = '/admin.html';
+                    } else {
+                        // User is valid but NOT admin -> Logout immediately
+                        await fetch('/api/auth/logout', { method: 'POST' });
+                        showMessage('Access Denied: You do not have administrator privileges.', 'error');
+                        btn.disabled = false;
+                        btn.textContent = 'Access Dashboard';
+                    }
+                } else {
+                    showMessage(data.detail || 'Invalid credentials', 'error');
+                    btn.disabled = false;
+                    btn.textContent = 'Access Dashboard';
+                }
+            } catch (err) {
+                showMessage('Connection error. Please try again.', 'error');
+                btn.disabled = false;
+                btn.textContent = 'Access Dashboard';
+            }
+        }
+
+        // Ambient dots background (reused from main login for consistency)
+        (function () {
+            const canvas = document.getElementById('loginBg');
+            const ctx = canvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+            let W, H;
+
+            function resize() {
+                W = canvas.width = window.innerWidth * dpr;
+                H = canvas.height = window.innerHeight * dpr;
+                canvas.style.width = window.innerWidth + 'px';
+                canvas.style.height = window.innerHeight + 'px';
+            }
+            resize();
+            window.addEventListener('resize', resize);
+
+            const dots = [];
+            for (let i = 0; i < 30; i++) {
+                dots.push({
+                    x: Math.random() * W, y: Math.random() * H,
+                    r: 1 + Math.random() * 2,
+                    vx: (Math.random() - .5) * .3,
+                    vy: (Math.random() - .5) * .3,
+                    color: '108, 92, 231'
+                });
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, W, H);
+                for (const d of dots) {
+                    d.x += d.vx; d.y += d.vy;
+                    if (d.x < 0) d.x = W; if (d.x > W) d.x = 0;
+                    if (d.y < 0) d.y = H; if (d.y > H) d.y = 0;
+                    ctx.beginPath();
+                    ctx.arc(d.x, d.y, d.r * dpr, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(${d.color},.15)`;
+                    ctx.fill();
+                }
+                requestAnimationFrame(draw);
+            }
+            draw();
+        })();
+
+        // Theme check
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.replace('light-theme', 'dark-theme');
+        }
+    </script>
+</body>
+
+</html>

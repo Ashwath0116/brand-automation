@@ -1,0 +1,22 @@
+# Virtual environments
+venv/
+venv2/
+
+# Environment variables
+.env
+backend/.env
+
+# Python cache
+__pycache__/
+backend/__pycache__/
+
+# Database
+backend/bizforge.db
+
+# Large binaries or executables (like the one found in the folder)
+Antigravity.exe
+Antigravity/
+
+# OS files
+.DS_Store
+Thumbs.db

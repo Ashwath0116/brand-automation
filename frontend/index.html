@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BizForge - AI Branding Suite</title>
+    <link rel="stylesheet" href="/static/style.css?v=16">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="light-theme">
+
+    <!-- Splash Intro -->
+    <div class="splash" id="splash">
+        <span class="splash-title">BizForge</span>
+        <span class="splash-sub">AI Branding Suite</span>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="logo">
+            <span class="logo-icon">🎨</span>
+            <span class="logo-text">BizForge</span>
+        </div>
+        <div class="nav-controls">
+            <select id="lang-select" onchange="changeLanguage(this.value)">
+                <option value="en">English</option>
+                <option value="es">Español</option>
+                <option value="fr">Français</option>
+                <option value="de">Deutsch</option>
+                <option value="hi">हिंदी</option>
+            </select>
+            <button class="theme-btn" onclick="toggleTheme()" aria-label="Toggle Theme">
+                <span id="theme-icon">🌙</span>
+            </button>
+            <div class="nav-auth" id="navAuth">
+                <a href="/login.html" class="nav-login-btn" id="navLoginBtn">Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="hero-content">
+            <h1>Build Your Brand with <span class="gradient-text">AI</span></h1>
+            <p>Create stunning brand names, logos, marketing content, and complete design systems in seconds.</p>
+            <a href="/branding.html" class="cta-button">Get Started →</a>
+        </div>
+    </header>
+
+    <!-- Features Grid -->
+    <section class="features">
+        <div class="features-grid">
+            <a href="/branding.html?tab=brand" class="feature-card">
+                <div class="feature-icon">🚀</div>
+                <h3>Brand Names</h3>
+                <p>Generate creative, memorable brand names with AI explanations.</p>
+                <span class="arrow">Explore →</span>
+            </a>
+            <a href="/branding.html?tab=logo" class="feature-card">
+                <div class="feature-icon">🎨</div>
+                <h3>Logo Generator</h3>
+                <p>Create professional logo prompts and visuals instantly.</p>
+                <span class="arrow">Explore →</span>
+            </a>
+            <a href="/branding.html?tab=content" class="feature-card">
+                <div class="feature-icon">✍️</div>
+                <h3>Marketing Content</h3>
+                <p>Generate engaging copy for ads, social media, and products.</p>
+                <span class="arrow">Explore →</span>
+            </a>
+            <a href="/branding.html?tab=colors" class="feature-card">
+                <div class="feature-icon">🌈</div>
+                <h3>Design System</h3>
+                <p>Get smart color palettes and sentiment analysis.</p>
+                <span class="arrow">Explore →</span>
+            </a>
+            <a href="/branding.html?tab=chat" class="feature-card">
+                <div class="feature-icon">🤖</div>
+                <h3>Branding Chat</h3>
+                <p>Consult with our AI brand expert for strategic advice.</p>
+                <span class="arrow">Explore →</span>
+            </a>
+        </div>
+    </section>
+
+    <!-- Info Section -->
+    <section class="info-section">
+        <h2>Why Choose BizForge?</h2>
+        <div class="info-grid">
+            <div class="info-tile">
+                <h4>⚡ AI-Powered</h4>
+                <p>Leveraging Groq LLaMA, Granite, and SDXL for top-tier results.</p>
+            </div>
+            <div class="info-tile">
+                <h4>🌍 Multilingual</h4>
+                <p>Support for English, Spanish, French, German, and Hindi.</p>
+            </div>
+            <div class="info-tile">
+                <h4>🎙️ Voice Input</h4>
+                <p>Speak your ideas and let AI handle the rest.</p>
+            </div>
+            <div class="info-tile">
+                <h4>💼 Professional</h4>
+                <p>Output tailored for business and enterprise needs.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 BizForge. Powered by IBM Granite, Groq AI & SDXL.</p>
+    </footer>
+
+    <script src="/static/vanilla-tilt.min.js"></script>
+    <script>
+        VanillaTilt.init(document.querySelectorAll(".feature-card"), {
+            max: 15,
+            speed: 400,
+            glare: true,
+            "max-glare": 0.2,
+        });
+    </script>
+    <script src="/static/script.js?v=3"></script>
+    <script src="/static/particles.js?v=1"></script>
+    <script src="/static/effects.js?v=2"></script>
+    <script src="/static/splash.js?v=2"></script>
+    <script src="/static/auth-nav.js?v=1"></script>
+</body>
+
+</html>

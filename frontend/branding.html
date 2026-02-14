@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BizForge - Branding Tools</title>
+    <link rel="stylesheet" href="/static/style.css?v=16">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Claymorphism styles are loaded from /static/style.css -->
+</head>
+
+<body class="light-theme">
+
+    <!-- Splash Intro -->
+    <div class="splash" id="splash">
+        <span class="splash-title">BizForge</span>
+        <span class="splash-sub">AI Branding Suite</span>
+    </div>
+
+    <nav class="navbar">
+        <div class="logo">
+            <a href="/" class="logo-link">
+                <span class="logo-icon">🎨</span>
+                <span class="logo-text">BizForge</span>
+            </a>
+        </div>
+        <div class="nav-controls">
+            <select id="lang-select" onchange="changeLanguage(this.value)">
+                <option value="en">English</option>
+                <option value="es">Español</option>
+                <option value="fr">Français</option>
+                <option value="de">Deutsch</option>
+                <option value="hi">हिंदी</option>
+                <option value="te">Telugu</option>
+            </select>
+            <button class="theme-btn" onclick="toggleTheme()">🌙</button>
+            <div class="nav-auth" id="navAuth">
+                <a href="/login.html" class="nav-login-btn" id="navLoginBtn">Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="tools-container">
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="openTab('brand')">🚀 Brand Names</button>
+            <button class="tab-btn" onclick="openTab('logo')">🎨 Logo Generator</button>
+            <button class="tab-btn" onclick="openTab('content')">✍️ Marketing Content</button>
+            <button class="tab-btn" onclick="openTab('design')">🌈 Design System</button>
+            <button class="tab-btn" onclick="openTab('sentiment')">☁️ Review Analyzer</button>
+            <button class="tab-btn" onclick="openTab('chat')">🤖 Branding Chat</button>
+        </div>
+
+        <!-- 1. Brand Names -->
+        <div id="brand" class="tab-content active">
+            <h2>Brand Name Generator</h2>
+            <p>Generate creative brand name ideas using AI by entering keywords, choosing an industry, and selecting a
+                tone.</p>
+            <div class="form-group">
+                <label>Industry</label>
+                <input type="text" id="brand-industry" placeholder="e.g. Tech, Fashion, Food">
+            </div>
+            <div class="form-group">
+                <label>Keywords</label>
+                <input type="text" id="brand-keywords" placeholder="e.g. fast, eco-friendly, premium">
+            </div>
+            <div class="form-group">
+                <label>Tone</label>
+                <select id="brand-tone">
+                    <option value="Professional">Professional</option>
+                    <option value="Playful">Playful</option>
+                    <option value="Luxury">Luxury</option>
+                    <option value="Minimalist">Minimalist</option>
+                </select>
+            </div>
+            <button class="btn-primary" onclick="generateBrandNames()">Generate Names</button>
+            <div id="brand-results" class="result-box" style="display:none;"></div>
+        </div>
+
+        <!-- 2. Logo Generator -->
+        <div id="logo" class="tab-content">
+            <h2>Logo Generator</h2>
+            <p>Input your brand name, industry, and keywords to generate logo concepts and AI-assisted descriptions.</p>
+            <div class="form-group">
+                <label>Brand Name</label>
+                <input type="text" id="logo-brandname" placeholder="Name of your brand">
+            </div>
+            <div class="form-group">
+                <label>Industry</label>
+                <input type="text" id="logo-industry" placeholder="e.g. Coffee Shop">
+            </div>
+            <div class="form-group">
+                <label>Keywords/Style</label>
+                <input type="text" id="logo-keywords" placeholder="e.g. modern, circle, beans">
+            </div>
+            <button class="btn-primary" onclick="generateLogo()">Generate Logo</button>
+            <div id="logo-results" class="result-box" style="display:none;"></div>
+        </div>
+
+        <!-- 3. Marketing Content -->
+        <div id="content" class="tab-content">
+            <h2>Marketing Content</h2>
+            <p>Enter a brand description, select tone and content type to generate descriptions, captions, and ad copy.
+            </p>
+            <div class="form-group">
+                <label>Brand Description</label>
+                <textarea id="content-brand-desc" rows="3" placeholder="Describe your brand..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Content Type</label>
+                <select id="content-type">
+                    <option value="product_description">Product Description</option>
+                    <option value="ad_copy">Ad Copy</option>
+                    <option value="social_post">Social Media Post</option>
+                    <option value="tagline">Tagline</option>
+                </select>
+            </div>
+            <button class="btn-primary" onclick="generateContent()">Generate Content</button>
+            <div id="content-results" class="result-box" style="display:none;"></div>
+        </div>
+
+        <!-- 4. Design System -->
+        <div id="design" class="tab-content">
+            <h2>Design System (Colors)</h2>
+            <p>Select tone and industry to receive AI-generated color palettes, style recommendations, and visual
+                branding guidance.</p>
+            <div class="form-group">
+                <label>Industry</label>
+                <input type="text" id="design-industry" placeholder="e.g. Finance">
+            </div>
+            <div class="form-group">
+                <label>Tone</label>
+                <select id="design-tone">
+                    <option value="Trustworthy">Trustworthy</option>
+                    <option value="Energetic">Energetic</option>
+                    <option value="Elegant">Elegant</option>
+                </select>
+            </div>
+            <button class="btn-primary" onclick="generateColors()">Generate Palette</button>
+            <div id="design-results" class="result-box" style="display:none;"></div>
+        </div>
+
+        <!-- 5. Sentiment Analysis -->
+        <div id="sentiment" class="tab-content">
+            <h2>Review Analyzer</h2>
+            <p>Paste text to receive sentiment insights and AI-improved rewrites.</p>
+            <div class="form-group">
+                <label>Text to Analyze</label>
+                <textarea id="sentiment-text" rows="4" placeholder="Paste review or text here..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Brand Tone Goal</label>
+                <input type="text" id="sentiment-tone" value="Professional">
+            </div>
+            <button class="btn-primary" onclick="analyzeSentiment()">Analyze Sentiment</button>
+            <div id="sentiment-results" class="result-box" style="display:none;"></div>
+        </div>
+
+        <!-- 6. Chat -->
+        <div id="chat" class="tab-content">
+            <h2>Branding Chat</h2>
+            <p>Ask branding questions and receive expert guidance from the BizForge chatbot.</p>
+            <div class="chat-window" id="chat-window">
+                <!-- Chat messages will appear here -->
+                <p class="chat-system-msg">System: You are chatting with BizForge AI.</p>
+            </div>
+            <div class="chat-input-row">
+                <input type="text" id="chat-input" placeholder="Ask a branding question...">
+                <button class="btn-primary" onclick="sendChatMessage()">Send</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="/static/vanilla-tilt.min.js"></script>
+    <script>
+        // Initialize tilt on any relevant cards if they exist on load
+        VanillaTilt.init(document.querySelectorAll(".info-tile"), {
+            max: 10,
+            speed: 400
+        });
+    </script>
+    <script src="/static/script.js?v=3"></script>
+    <script src="/static/particles.js?v=1"></script>
+    <script src="/static/effects.js?v=2"></script>
+    <script>
+        // Simple tab switching logic for quick preview
+        function openTab(tabName) {
+            // Update URL params
+            const url = new URL(window.location);
+            url.searchParams.set('tab', tabName);
+            window.history.pushState({}, '', url);
+
+            // Hide all
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+            // Show selected
+            document.getElementById(tabName).classList.add('active');
+            // Highlight button (simple loop)
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                if (btn.innerHTML.includes(tabName) || btn.getAttribute('onclick').includes(tabName)) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        // Check URL on load
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const tab = params.get('tab');
+            if (tab) openTab(tab);
+        });
+    </script>
+    <script src="/static/splash.js?v=2"></script>
+    <script src="/static/auth-nav.js?v=1"></script>
+</body>
+
+</html>

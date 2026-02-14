@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BizForge - Admin Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css?v=16">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        .admin-wrapper {
+            min-height: 100vh;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .admin-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+
+        .admin-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+        }
+
+        .admin-back {
+            color: var(--accent);
+            text-decoration: none;
+            font-size: .9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: .3rem;
+        }
+
+        .admin-back:hover {
+            text-decoration: underline;
+        }
+
+        /* Stats cards */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: var(--clay-shadow);
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .stat-label {
+            font-size: .8rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: .3rem;
+        }
+
+        /* Search bar */
+        .search-bar {
+            margin-bottom: 1.5rem;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: .85rem 1.2rem;
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            font-size: .95rem;
+            color: var(--text);
+            font-family: inherit;
+            outline: none;
+            transition: border-color .3s;
+            box-sizing: border-box;
+        }
+
+        .search-bar input:focus {
+            border-color: var(--accent);
+        }
+
+        .search-bar input::placeholder {
+            color: var(--text-dim);
+            opacity: .5;
+        }
+
+        /* Users table */
+        .users-card {
+            background: var(--card);
+            border-radius: 20px;
+            box-shadow: var(--clay-shadow);
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .users-table th {
+            padding: 1rem 1.2rem;
+            text-align: left;
+            font-size: .75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .users-table td {
+            padding: .9rem 1.2rem;
+            font-size: .9rem;
+            color: var(--text);
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+        .users-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .users-table tr:hover td {
+            background: rgba(108, 92, 231, .03);
+        }
+
+        /* User row elements */
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: .8rem;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: .85rem;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .user-name {
+            font-weight: 600;
+        }
+
+        .user-email {
+            font-size: .8rem;
+            color: var(--text-dim);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: .2rem .6rem;
+            border-radius: 8px;
+            font-size: .7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+
+        .badge-local {
+            background: rgba(108, 92, 231, .1);
+            color: var(--accent);
+        }
+
+        .badge-google {
+            background: rgba(66, 133, 244, .1);
+            color: #4285F4;
+        }
+
+        .badge-github {
+            background: rgba(51, 51, 51, .1);
+            color: #333;
+        }
+
+        .badge-admin {
+            background: rgba(255, 82, 82, .1);
+            color: #ff5252;
+        }
+
+        .delete-btn {
+            background: none;
+            border: 1px solid rgba(255, 82, 82, .3);
+            color: #ff5252;
+            padding: .4rem .8rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: .75rem;
+            font-weight: 600;
+            font-family: inherit;
+            transition: all .2s;
+        }
+
+        .delete-btn:hover {
+            background: rgba(255, 82, 82, .1);
+            border-color: #ff5252;
+        }
+
+        /* Loading & empty states */
+        .loading-state,
+        .empty-state,
+        .no-access {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-dim);
+        }
+
+        .no-access {
+            min-height: 60vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .no-access-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .no-access h2 {
+            color: var(--text);
+            margin-bottom: .5rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .admin-wrapper {
+                padding: 1rem;
+            }
+
+            .users-table th:nth-child(4),
+            .users-table td:nth-child(4),
+            .users-table th:nth-child(5),
+            .users-table td:nth-child(5) {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body class="light-theme">
+    <div id="mainContent" class="admin-wrapper" style="display:none;">
+        <div class="admin-header">
+            <div class="admin-title">🛡️ Admin Dashboard</div>
+            <div style="display:flex;gap:1.5rem;align-items:center;">
+                <a href="/" class="admin-back">← Back to BizForge</a>
+                <button onclick="handleLogout()" class="admin-back"
+                    style="background:none;border:none;font-family:inherit;cursor:pointer;padding:0;">Logout ➔</button>
+            </div>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-value" id="totalUsers">—</div>
+                <div class="stat-label">Total Users</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="localUsers">—</div>
+                <div class="stat-label">Email Signups</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="googleUsers">—</div>
+                <div class="stat-label">Google Users</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="githubUsers">—</div>
+                <div class="stat-label">GitHub Users</div>
+            </div>
+        </div>
+
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="🔍  Search users by name or email..."
+                oninput="filterUsers()">
+        </div>
+
+        <div class="users-card">
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Provider</th>
+                        <th>Role</th>
+                        <th>Joined</th>
+                        <th>Last Login</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="usersBody">
+                    <tr>
+                        <td colspan="6" class="loading-state">Loading users...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="noAccess" class="no-access" style="display:none;">
+        <div class="no-access-icon">🔒</div>
+        <h2>Admin Access Required</h2>
+        <p>You don't have permission to view this page.</p>
+        <br>
+        <a href="/" class="admin-back">← Back to BizForge</a>
+    </div>
+
+    <script>
+        let allUsers = [];
+
+        // Check admin access
+        async function init() {
+            try {
+                const resp = await fetch('/api/auth/me');
+                const data = await resp.json();
+
+                if (!data.success || !data.user || !data.user.is_admin) {
+                    document.getElementById('noAccess').style.display = 'flex';
+                    return;
+                }
+
+                document.getElementById('mainContent').style.display = 'block';
+                loadUsers();
+            } catch (e) {
+                document.getElementById('noAccess').style.display = 'flex';
+            }
+        }
+
+        async function loadUsers() {
+            try {
+                const resp = await fetch('/api/auth/admin/users');
+                const data = await resp.json();
+
+                if (!data.success) throw new Error('Failed to load');
+
+                allUsers = data.users;
+                updateStats();
+                renderUsers(allUsers);
+            } catch (e) {
+                document.getElementById('usersBody').innerHTML =
+                    '<tr><td colspan="6" class="empty-state">Failed to load users</td></tr>';
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('totalUsers').textContent = allUsers.length;
+            document.getElementById('localUsers').textContent = allUsers.filter(u => u.provider === 'local').length;
+            document.getElementById('googleUsers').textContent = allUsers.filter(u => u.provider === 'google').length;
+            document.getElementById('githubUsers').textContent = allUsers.filter(u => u.provider === 'github').length;
+        }
+
+        function renderUsers(users) {
+            const tbody = document.getElementById('usersBody');
+            if (users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No users found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = users.map(u => {
+                const initials = (u.name || 'U').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+                const avatar = u.avatar_url
+                    ? `<img src="${u.avatar_url}" alt="">`
+                    : initials;
+                const badgeClass = `badge-${u.provider}`;
+                const joined = u.created_at ? new Date(u.created_at).toLocaleDateString() : '—';
+                const lastLogin = u.last_login ? new Date(u.last_login).toLocaleDateString() : '—';
+
+                return `
+                    <tr>
+                        <td>
+                            <div class="user-info">
+                                <div class="user-avatar">${avatar}</div>
+                                <div>
+                                    <div class="user-name">${u.name}</div>
+                                    <div class="user-email">${u.email}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="badge ${badgeClass}">${u.provider}</span></td>
+                        <td>${u.is_admin ? '<span class="badge badge-admin">Admin</span>' : 'User'}</td>
+                        <td>${joined}</td>
+                        <td>${lastLogin}</td>
+                        <td>
+                            ${u.is_admin ? '—' : `<button class="delete-btn" onclick="deleteUser(${u.id}, '${u.name}')">Delete</button>`}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filterUsers() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allUsers.filter(u =>
+                u.name.toLowerCase().includes(query) || u.email.toLowerCase().includes(query)
+            );
+            renderUsers(filtered);
+        }
+
+        async function deleteUser(id, name) {
+            if (!confirm(`Delete user "${name}"? This cannot be undone.`)) return;
+
+            try {
+                const resp = await fetch(`/api/auth/admin/users/${id}`, { method: 'DELETE' });
+                const data = await resp.json();
+                if (data.success) {
+                    allUsers = allUsers.filter(u => u.id !== id);
+                    updateStats();
+                    renderUsers(allUsers);
+                }
+            } catch (e) {
+                alert('Failed to delete user');
+            }
+        }
+
+        async function handleLogout() {
+            try {
+                await fetch('/api/auth/logout', { method: 'POST' });
+                window.location.href = '/admin-login.html';
+            } catch (e) {
+                window.location.href = '/admin-login.html';
+            }
+        }
+
+        init();
+
+        // Apply saved theme
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') document.body.classList.replace('light-theme', 'dark-theme');
+    </script>
+</body>
+
+</html>
