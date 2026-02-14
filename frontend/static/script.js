@@ -73,6 +73,68 @@ function hideLoading(elementId) {
     // Optional: Hide or keep content visible
 }
 
+// 0. Brand Kit
+async function generateBrandKit() {
+    const brand_name = document.getElementById('kit-name').value;
+    const industry = document.getElementById('kit-industry').value;
+    const keywords = document.getElementById('kit-keywords').value.split(',').map(k => k.trim());
+    const tone = document.getElementById('kit-tone').value;
+
+    if (!brand_name || !industry) return alert('Brand Name and Industry are required.');
+
+    const resultsDivId = 'kit-results';
+    showLoading(resultsDivId);
+
+    const response = await postData('/generate-brand-kit', { brand_name, industry, keywords, tone });
+
+    if (response && response.success && response.data) {
+        const { names, colors, logo_prompt, tagline } = response.data;
+        const resultsDiv = document.getElementById(resultsDivId);
+
+        const paletteHtml = colors.palette.map(color => `
+            <div style="flex:1; height:60px; background-color:${color}; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:0.7rem; font-weight:bold; text-shadow:0 1px 2px rgba(0,0,0,0.5);">
+                ${color}
+            </div>
+        `).join('');
+
+        const namesHtml = names.map(n => `<li><strong>${n.name}</strong>: ${n.explanation}</li>`).join('');
+
+        resultsDiv.innerHTML = `
+            <div class="kit-container" style="background:#fff; padding:2rem; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,0.1);">
+                <div style="text-align:center; margin-bottom:2rem;">
+                    <h1 style="margin:0; font-size:2.5rem; color:var(--text);">${brand_name}</h1>
+                    <p style="font-style:italic; color:var(--text-dim); font-size:1.2rem; margin-top:0.5rem;">"${tagline}"</p>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:2rem;">
+                    <div>
+                        <h4 style="border-bottom:2px solid var(--accent); display:inline-block; margin-bottom:1rem;">Visual Palette</h4>
+                        <div style="display:flex; gap:0.5rem;">${paletteHtml}</div>
+                        <p style="font-size:0.85rem; margin-top:1rem; color:var(--text-dim);">${colors.explanation}</p>
+                    </div>
+                    <div>
+                        <h4 style="border-bottom:2px solid var(--accent); display:inline-block; margin-bottom:1rem;">Brand Strategy</h4>
+                        <ul style="font-size:0.85rem; padding-left:1.2rem; line-height:1.6;">
+                            ${namesHtml}
+                        </ul>
+                    </div>
+                </div>
+
+                <div style="margin-top:2rem; padding:1.5rem; background:#f8f9fa; border-radius:12px; border-left:4px solid var(--accent2);">
+                    <h4 style="margin-top:0;">Logo Design Brief</h4>
+                    <p style="font-size:0.9rem; line-height:1.5; color:var(--text);">${logo_prompt}</p>
+                    <button class="btn-primary" style="margin-top:1rem; width:auto; padding:0.6rem 1.2rem; font-size:0.85rem;" 
+                            onclick="document.getElementById('logo-brandname').value='${brand_name}'; document.getElementById('logo-industry').value='${industry}'; openTab('logo');">
+                        Generate This Logo 🎨
+                    </button>
+                </div>
+            </div>
+        `;
+    } else {
+        document.getElementById(resultsDivId).innerHTML = '<p style="color:red">Failed to generate brand kit.</p>';
+    }
+}
+
 // 1. Brand Names
 async function generateBrandNames() {
     const industry = document.getElementById('brand-industry').value;

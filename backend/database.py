@@ -39,6 +39,17 @@ class Session(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
+class BrandingLog(Base):
+    __tablename__ = "branding_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, index=True)
+    tool_type = Column(String)  # logo, brand, content, sentiment, color, chat, kit
+    prompt = Column(String)
+    result_summary = Column(String)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
 def init_db():
     """Create all tables if they don't exist."""
     Base.metadata.create_all(bind=engine)
