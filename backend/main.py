@@ -10,12 +10,10 @@ from pydub import AudioSegment
 import io
 
 # Import local modules
-from .models import BrandingRequest, BrandNameRequest, ContentGenerationRequest, SentimentAnalysisRequest, ColorPaletteRequest, ChatRequest, BrandKitRequest
+from .models import BrandingRequest, BrandNameRequest, ContentGenerationRequest, SentimentAnalysisRequest, ColorPaletteRequest, ChatRequest
 from .ai_services import AIService
-from .auth import router as auth_router, get_current_user
-from .database import init_db, get_db, BrandingLog, User
-from sqlalchemy.orm import Session as DBSession
-from fastapi import Depends
+from .auth import router as auth_router
+from .database import init_db
 
 app = FastAPI()
 
@@ -42,21 +40,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 FRONTEND_DIR = BASE_DIR / "frontend"
 STATIC_DIR = FRONTEND_DIR / "static"
 
-# --- Helper: Log AI Usage ---
-async def log_ai_usage(db: DBSession, user, tool_type: str, prompt: str, result: str):
-    try:
-        user_id = user.id if user else None
-        log = BrandingLog(
-            user_id=user_id,
-            tool_type=tool_type,
-            prompt=str(prompt)[:1000],
-            result_summary=str(result)[:500]
-        )
-        db.add(log)
-        db.commit()
-    except Exception as e:
-        print(f"Logging failed: {e}")
-
 # Ensure directories exist
 STATIC_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -64,7 +47,7 @@ STATIC_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 @app.post("/api/generate-logo")
-async def generate_logo_endpoint(request: BrandingRequest, db: DBSession = Depends(get_db), user=Depends(get_current_user)):
+async def generate_logo_endpoint(request: BrandingRequest):
     try:
         # 1. Generate Prompt
         prompt_result = await ai_service.generate_logo_prompt(
@@ -73,10 +56,8 @@ async def generate_logo_endpoint(request: BrandingRequest, db: DBSession = Depen
             request.keywords
         )
         
-        # 2. Generate Image
+        # 2. Generate Image (Activity 2.4 - Keeping this as value add, but prompt is key for 2.10)
         image_result = await ai_service.generate_logo_image(prompt_result)
-        
-        await log_ai_usage(db, user, "logo", request.brand_name, f"Prompt: {prompt_result[:100]}...")
         
         return {
             "success": True, 
@@ -89,7 +70,7 @@ async def generate_logo_endpoint(request: BrandingRequest, db: DBSession = Depen
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/generate-brand")
-async def generate_brand_endpoint(request: BrandNameRequest, db: DBSession = Depends(get_db), user=Depends(get_current_user)):
+async def generate_brand_endpoint(request: BrandNameRequest):
     try:
         result = await ai_service.generate_brand_names(
             request.industry,
@@ -97,13 +78,12 @@ async def generate_brand_endpoint(request: BrandNameRequest, db: DBSession = Dep
             request.tone,
             request.language
         )
-        await log_ai_usage(db, user, "brand", f"{request.industry} | {request.keywords}", f"Got {len(result)} names")
         return {"success": True, "data": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/generate-content")
-async def generate_content_endpoint(request: ContentGenerationRequest, db: DBSession = Depends(get_db), user=Depends(get_current_user)):
+async def generate_content_endpoint(request: ContentGenerationRequest):
     try:
         result = await ai_service.generate_marketing_content(
             request.brand_description,
@@ -111,7 +91,6 @@ async def generate_content_endpoint(request: ContentGenerationRequest, db: DBSes
             request.content_type,
             request.language
         )
-        await log_ai_usage(db, user, "content", request.content_type, f"{result[:100]}...")
         return {"success": True, "data": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -161,95 +140,28 @@ async def transcribe_voice(audio_file: UploadFile = File(...)):
             os.remove(temp_filename)
 
 @app.post("/api/analyze-sentiment")
-async def analyze_sentiment_endpoint(request: SentimentAnalysisRequest, db: DBSession = Depends(get_db), user=Depends(get_current_user)):
+async def analyze_sentiment_endpoint(request: SentimentAnalysisRequest):
     try:
         result = await ai_service.analyze_sentiment(request.text, request.brand_tone, request.language)
-        await log_ai_usage(db, user, "sentiment", request.text[:100], result.get("sentiment"))
         return {"success": True, "data": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/get-colors")
-async def get_colors_endpoint(request: ColorPaletteRequest, db: DBSession = Depends(get_db), user=Depends(get_current_user)):
+async def get_colors_endpoint(request: ColorPaletteRequest):
     try:
         result = await ai_service.get_color_palette(request.tone, request.industry)
-        await log_ai_usage(db, user, "color", f"{request.tone} | {request.industry}", ",".join(result.get("palette", [])))
         return {"success": True, "data": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/chat")
-async def chat_endpoint(request: ChatRequest, db: DBSession = Depends(get_db), user=Depends(get_current_user)):
+async def chat_endpoint(request: ChatRequest):
     try:
         result = await ai_service.chat_with_ai(request.message, request.language)
-        await log_ai_usage(db, user, "chat", request.message, result[:100])
         return {"success": True, "data": {"content": result}}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-# New Endpoint: Brand Kit Generator
-@app.post("/api/generate-brand-kit")
-async def generate_brand_kit(request: BrandKitRequest, db: DBSession = Depends(get_db), user=Depends(get_current_user)):
-    try:
-        # 1. Names
-        names = await ai_service.generate_brand_names(request.industry, request.keywords, request.tone, request.language)
-        
-        # 2. Colors
-        colors = await ai_service.get_color_palette(request.tone, request.industry)
-        
-        # 3. Logo Prompt
-        logo_prompt = await ai_service.generate_logo_prompt(request.brand_name, request.industry, request.keywords)
-        
-        # 4. Tagline
-        tagline = await ai_service.generate_marketing_content(f"A {request.tone} brand in {request.industry} called {request.brand_name}", request.tone, "tagline", request.language)
-
-        result = {
-            "names": names[:5],
-            "colors": colors,
-            "logo_prompt": logo_prompt,
-            "tagline": tagline
-        }
-        await log_ai_usage(db, user, "kit", request.brand_name, "Complete kit generated")
-        return {"success": True, "data": result}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-# New Endpoint: Admin Stats
-@app.get("/api/auth/admin/stats")
-async def admin_stats(request: Request, db: DBSession = Depends(get_db)):
-    user = get_current_user(request, db)
-    if not user or not user.is_admin:
-        raise HTTPException(403, "Admin access required")
-
-    total_users = db.query(User).count()
-    total_logs = db.query(BrandingLog).count()
-    
-    # Tool breakdown
-    from sqlalchemy import func
-    usage_breakdown = db.query(BrandingLog.tool_type, func.count(BrandingLog.tool_type)).group_by(BrandingLog.tool_type).all()
-    tool_usage = {tool: count for tool, count in usage_breakdown}
-    
-    # Recent activity
-    recent = db.query(BrandingLog, User.name).join(User, User.id == BrandingLog.user_id, isouter=True).order_by(BrandingLog.created_at.desc()).limit(10).all()
-    
-    recent_logs = []
-    for log, uname in recent:
-        recent_logs.append({
-            "id": log.id,
-            "user": uname or "Guest",
-            "tool": log.tool_type,
-            "prompt": log.prompt,
-            "result": log.result_summary,
-            "time": log.created_at.isoformat()
-        })
-
-    return {
-        "success": True,
-        "total_users": total_users,
-        "total_logs": total_logs,
-        "tool_usage": tool_usage,
-        "recent_logs": recent_logs
-    }
 
 # Frontend Routing
 @app.get("/{page}.html")

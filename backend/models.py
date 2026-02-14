@@ -39,16 +39,3 @@ class BrandingResponse(BaseModel):
     logo_prompt: str
     brand_story: Optional[str] = None
     sentiment_analysis: Optional[str] = None
-
-class BrandKitRequest(BaseModel):
-    brand_name: str
-    industry: str
-    keywords: List[str]
-    tone: Optional[str] = "Professional"
-    language: Optional[str] = "en"
-
-class AdminStatsResponse(BaseModel):
-    total_users: int
-    total_logs: int
-    tool_usage: Dict[str, int]
-    recent_logs: List[Dict]

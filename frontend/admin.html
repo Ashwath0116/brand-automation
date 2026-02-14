@@ -62,63 +62,6 @@
             text-align: center;
         }
 
-        .activity-card {
-            background: var(--card);
-            border-radius: 20px;
-            padding: 2rem;
-            margin-top: 2rem;
-            box-shadow: var(--clay-shadow);
-        }
-
-        .activity-list {
-            margin-top: 1.5rem;
-        }
-
-        .activity-item {
-            display: flex;
-            align-items: center;
-            padding: 1rem;
-            border-bottom: 1px solid var(--border);
-            gap: 1rem;
-        }
-
-        .activity-item:last-child {
-            border-bottom: none;
-        }
-
-        .badge {
-            padding: 4px 10px;
-            border-radius: 8px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-
-        .badge-logo {
-            background: #e3f2fd;
-            color: #1976d2;
-        }
-
-        .badge-brand {
-            background: #f3e5f5;
-            color: #7b1fa2;
-        }
-
-        .badge-content {
-            background: #e8f5e9;
-            color: #388e3c;
-        }
-
-        .badge-chat {
-            background: #fff3e0;
-            color: #f57c00;
-        }
-
-        .badge-kit {
-            background: #ffebee;
-            color: #c62828;
-        }
-
         .stat-value {
             font-size: 2.2rem;
             font-weight: 700;
@@ -351,23 +294,16 @@
                 <div class="stat-label">Total Users</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value" id="totalUsage">—</div>
-                <div class="stat-label">AI Generations</div>
-            </div>
-            <div class="stat-card">
                 <div class="stat-value" id="localUsers">—</div>
-                <div class="stat-label">Local Users</div>
+                <div class="stat-label">Email Signups</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value" id="googleUsers">—</div>
                 <div class="stat-label">Google Users</div>
             </div>
-        </div>
-
-        <div class="activity-card">
-            <h3>📈 Recent AI Activity</h3>
-            <div class="activity-list" id="activityList">
-                <div class="loading-state" style="text-align:center;padding:2rem;">Loading activity...</div>
+            <div class="stat-card">
+                <div class="stat-value" id="githubUsers">—</div>
+                <div class="stat-label">GitHub Users</div>
             </div>
         </div>
 
@@ -428,56 +364,25 @@
 
         async function loadUsers() {
             try {
-                // Fetch basic user list
-                const usersResp = await fetch('/api/auth/admin/users');
-                const usersData = await usersResp.json();
-                if (usersData.success) {
-                    allUsers = usersData.users;
-                    renderUsers(allUsers);
-                    document.getElementById('totalUsers').textContent = allUsers.length;
-                    document.getElementById('localUsers').textContent = allUsers.filter(u => u.provider === 'local').length;
-                    document.getElementById('googleUsers').textContent = allUsers.filter(u => u.provider === 'google').length;
-                }
+                const resp = await fetch('/api/auth/admin/users');
+                const data = await resp.json();
 
-                // Fetch full stats and activity logs
-                const statsResp = await fetch('/api/auth/admin/stats');
-                const statsData = await statsResp.json();
-                if (statsData.success) {
-                    document.getElementById('totalUsage').textContent = statsData.total_logs;
-                    renderActivity(statsData.recent_logs);
-                }
+                if (!data.success) throw new Error('Failed to load');
 
+                allUsers = data.users;
+                updateStats();
+                renderUsers(allUsers);
             } catch (e) {
-                console.error(e);
                 document.getElementById('usersBody').innerHTML =
-                    '<tr><td colspan="6" class="empty-state">Failed to load data</td></tr>';
+                    '<tr><td colspan="6" class="empty-state">Failed to load users</td></tr>';
             }
-        }
-
-        function renderActivity(logs) {
-            const list = document.getElementById('activityList');
-            if (!logs || logs.length === 0) {
-                list.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--text-dim);">No recent activity</div>';
-                return;
-            }
-
-            list.innerHTML = logs.map(l => {
-                const time = new Date(l.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                return `
-                    <div class="activity-item">
-                        <span class="badge badge-${l.tool}">${l.tool}</span>
-                        <div style="flex:1">
-                            <strong>${l.user}</strong> generated ${l.tool === 'kit' ? 'a brand kit' : l.tool}
-                            <div style="font-size:0.75rem;color:var(--text-dim);margin-top:2px;">"${l.prompt.substring(0, 50)}${l.prompt.length > 50 ? '...' : ''}"</div>
-                        </div>
-                        <span style="font-size:0.75rem;color:var(--text-dim)">${time}</span>
-                    </div>
-                `;
-            }).join('');
         }
 
         function updateStats() {
-            // Already handled in loadUsers now for efficiency
+            document.getElementById('totalUsers').textContent = allUsers.length;
+            document.getElementById('localUsers').textContent = allUsers.filter(u => u.provider === 'local').length;
+            document.getElementById('googleUsers').textContent = allUsers.filter(u => u.provider === 'google').length;
+            document.getElementById('githubUsers').textContent = allUsers.filter(u => u.provider === 'github').length;
         }
 
         function renderUsers(users) {

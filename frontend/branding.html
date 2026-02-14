@@ -44,8 +44,7 @@
     <div class="tools-container">
 
         <div class="tabs">
-            <button class="tab-btn active" onclick="openTab('kit')">⚡ Brand Kit</button>
-            <button class="tab-btn" onclick="openTab('brand')">🚀 Brand Names</button>
+            <button class="tab-btn active" onclick="openTab('brand')">🚀 Brand Names</button>
             <button class="tab-btn" onclick="openTab('logo')">🎨 Logo Generator</button>
             <button class="tab-btn" onclick="openTab('content')">✍️ Marketing Content</button>
             <button class="tab-btn" onclick="openTab('design')">🌈 Design System</button>
@@ -53,37 +52,8 @@
             <button class="tab-btn" onclick="openTab('chat')">🤖 Branding Chat</button>
         </div>
 
-        <!-- 0. One-Click Brand Kit -->
-        <div id="kit" class="tab-content active">
-            <h2>One-Click Brand Kit</h2>
-            <p>Generate a complete visual and verbal identity in one click. Perfect for new launches!</p>
-            <div class="form-group">
-                <label>Proposed Brand Name</label>
-                <input type="text" id="kit-name" placeholder="e.g. EcoSpark">
-            </div>
-            <div class="form-group">
-                <label>Industry</label>
-                <input type="text" id="kit-industry" placeholder="e.g. Sustainable Energy">
-            </div>
-            <div class="form-group">
-                <label>Keywords</label>
-                <input type="text" id="kit-keywords" placeholder="e.g. green, futuristic, clean">
-            </div>
-            <div class="form-group">
-                <label>Tone</label>
-                <select id="kit-tone">
-                    <option value="Professional">Professional</option>
-                    <option value="Modern">Modern</option>
-                    <option value="Friendly">Friendly</option>
-                    <option value="Luxury">Luxury</option>
-                </select>
-            </div>
-            <button class="btn-primary" onclick="generateBrandKit()">Launch Brand Kit</button>
-            <div id="kit-results" class="result-box" style="display:none;"></div>
-        </div>
-
         <!-- 1. Brand Names -->
-        <div id="brand" class="tab-content">
+        <div id="brand" class="tab-content active">
             <h2>Brand Name Generator</h2>
             <p>Generate creative brand name ideas using AI by entering keywords, choosing an industry, and selecting a
                 tone.</p>
