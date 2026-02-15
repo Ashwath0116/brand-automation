@@ -1,194 +1,208 @@
 /* ═══════════════════════════════════════════════════════════
-   BizForge — Interactive Particle Network Background
-   Mouse-reactive particles with connecting lines
+   BizForge — Branding Tools Floating Background (Optimized)
+   Smooth 60fps floating design icons & shapes
    ═══════════════════════════════════════════════════════════ */
 
 (function () {
     'use strict';
 
-    // Create canvas
     const canvas = document.createElement('canvas');
-    canvas.id = 'particle-bg';
-    canvas.style.cssText = 'position:fixed;inset:0;z-index:0;pointer-events:none;';
+    canvas.id = 'brand-bg';
+    canvas.style.cssText = 'position:fixed;inset:0;z-index:-1;pointer-events:none;will-change:transform;';
     document.body.prepend(canvas);
-    const ctx = canvas.getContext('2d');
-
-    // Settings
-    const PARTICLE_COUNT = 35;
-    const CONNECT_DIST = 180;
-    const MOUSE_RADIUS = 250;
-    const LINE_OPACITY = 0.12;
+    const ctx = canvas.getContext('2d', { alpha: true });
 
     let width, height;
-    let mouse = { x: -9999, y: -9999, active: false };
-    let particles = [];
     let isDark = document.body.classList.contains('dark-theme');
+    let icons = [];
+    let animId;
 
-    // Watch for theme changes
+    // Mouse (throttled)
+    const mouse = { x: -9999, y: -9999 };
+    const MOUSE_RADIUS = 120;
+    const MOUSE_STRENGTH = 4;
+    let mouseMoveThrottle = false;
+
+    window.addEventListener('resize', () => {
+        cancelAnimationFrame(animId);
+        resize();
+        animId = requestAnimationFrame(animate);
+    });
+
+    window.addEventListener('mousemove', e => {
+        if (mouseMoveThrottle) return;
+        mouseMoveThrottle = true;
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+        setTimeout(() => mouseMoveThrottle = false, 16); // ~60fps throttle
+    });
+
+    window.addEventListener('mouseleave', () => {
+        mouse.x = -9999;
+        mouse.y = -9999;
+    });
+
     const themeObserver = new MutationObserver(() => {
         isDark = document.body.classList.contains('dark-theme');
     });
     themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
 
+    // ── Symbols ──
+    const SYMBOLS = [
+        '🎨', '✏️', '🖌️', '💡', '🎯', '📐', '🔤',
+        '💎', '⭐', '🚀', '✨', '📊', '🏷️', '🌈'
+    ];
+
+    const COLORS = [
+        '#6c5ce7', '#00cec9', '#fd79a8', '#fdcb6e',
+        '#e17055', '#a29bfe', '#55efc4', '#74b9ff'
+    ];
+
+    // Simple shapes drawn as paths (cheaper than emoji)
+    const SHAPE_TYPES = ['diamond', 'circle', 'triangle', 'square', 'hexagon'];
+
+    class FloatingIcon {
+        constructor() {
+            this.reset(true);
+        }
+
+        reset(initial = false) {
+            this.x = Math.random() * width;
+            this.y = initial ? Math.random() * height : -60;
+            this.vx = (Math.random() - 0.5) * 0.3;
+            this.vy = Math.random() * 0.25 + 0.1;
+            this.size = Math.random() * 16 + 14;
+            this.rotation = Math.random() * Math.PI * 2;
+            this.rotSpeed = (Math.random() - 0.5) * 0.008;
+            this.opacity = Math.random() * 0.4 + 0.35;
+            this.color = COLORS[Math.floor(Math.random() * COLORS.length)];
+            this.bobPhase = Math.random() * Math.PI * 2;
+            this.bobSpeed = Math.random() * 0.008 + 0.004;
+            this.bobAmount = Math.random() * 6 + 3;
+            this.pushX = 0;
+            this.pushY = 0;
+
+            // Decide: emoji or shape (50/50)
+            if (Math.random() > 0.5) {
+                this.type = 'emoji';
+                this.symbol = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+            } else {
+                this.type = 'shape';
+                this.shape = SHAPE_TYPES[Math.floor(Math.random() * SHAPE_TYPES.length)];
+            }
+        }
+
+        update() {
+            this.x += this.vx;
+            this.y += this.vy;
+            this.rotation += this.rotSpeed;
+            this.bobPhase += this.bobSpeed;
+
+            // Mouse repulsion
+            const dx = this.x - mouse.x;
+            const dy = this.y - mouse.y;
+            const distSq = dx * dx + dy * dy; // Skip sqrt when possible
+            const rSq = MOUSE_RADIUS * MOUSE_RADIUS;
+
+            if (distSq < rSq && distSq > 0) {
+                const dist = Math.sqrt(distSq);
+                const force = (1 - dist / MOUSE_RADIUS);
+                this.pushX += (dx / dist) * force * force * MOUSE_STRENGTH;
+                this.pushY += (dy / dist) * force * force * MOUSE_STRENGTH;
+            }
+
+            this.pushX *= 0.92;
+            this.pushY *= 0.92;
+
+            if (this.y > height + 80 || this.x < -80 || this.x > width + 80) {
+                this.reset();
+            }
+        }
+
+        draw() {
+            const drawX = this.x + this.pushX + Math.sin(this.bobPhase) * this.bobAmount;
+            const drawY = this.y + this.pushY;
+
+            ctx.save();
+            ctx.translate(drawX, drawY);
+            ctx.rotate(this.rotation);
+            ctx.globalAlpha = this.opacity;
+
+            if (this.type === 'emoji') {
+                ctx.font = `${this.size}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.symbol, 0, 0);
+            } else {
+                // Geometric shapes (fast path drawing)
+                const s = this.size;
+                ctx.strokeStyle = this.color;
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+
+                switch (this.shape) {
+                    case 'diamond':
+                        ctx.moveTo(0, -s / 2);
+                        ctx.lineTo(s / 2, 0);
+                        ctx.lineTo(0, s / 2);
+                        ctx.lineTo(-s / 2, 0);
+                        ctx.closePath();
+                        break;
+                    case 'circle':
+                        ctx.arc(0, 0, s / 2, 0, Math.PI * 2);
+                        break;
+                    case 'triangle':
+                        ctx.moveTo(0, -s / 2);
+                        ctx.lineTo(s / 2, s / 2);
+                        ctx.lineTo(-s / 2, s / 2);
+                        ctx.closePath();
+                        break;
+                    case 'square':
+                        ctx.rect(-s / 2, -s / 2, s, s);
+                        break;
+                    case 'hexagon':
+                        for (let i = 0; i < 6; i++) {
+                            const a = (Math.PI / 3) * i - Math.PI / 6;
+                            if (i === 0) ctx.moveTo(Math.cos(a) * s / 2, Math.sin(a) * s / 2);
+                            else ctx.lineTo(Math.cos(a) * s / 2, Math.sin(a) * s / 2);
+                        }
+                        ctx.closePath();
+                        break;
+                }
+                ctx.stroke();
+            }
+
+            ctx.restore();
+        }
+    }
+
+    function initIcons() {
+        icons = [];
+        // Reduced count for performance
+        const count = window.innerWidth < 768 ? 18 : 35;
+        for (let i = 0; i < count; i++) {
+            icons.push(new FloatingIcon());
+        }
+    }
+
     function resize() {
         width = canvas.width = window.innerWidth;
         height = canvas.height = window.innerHeight;
-    }
-    resize();
-    window.addEventListener('resize', resize);
-
-    // Track mouse over the entire window (canvas has pointer-events:none)
-    document.addEventListener('mousemove', (e) => {
-        mouse.x = e.clientX;
-        mouse.y = e.clientY;
-        mouse.active = true;
-    });
-    document.addEventListener('mouseleave', () => { mouse.active = false; });
-
-    // Paint ball colors — vibrant and juicy
-    const colors = [
-        { r: 108, g: 92, b: 231, name: 'purple' },    // purple
-        { r: 6, g: 206, b: 201, name: 'teal' },       // teal
-        { r: 253, g: 121, b: 168, name: 'pink' },        // pink
-        { r: 245, g: 158, b: 11, name: 'amber' },       // amber
-        { r: 85, g: 239, b: 196, name: 'mint' },        // mint
-        { r: 162, g: 155, b: 254, name: 'lavender' },    // lavender
-        { r: 255, g: 82, b: 82, name: 'red' },         // red
-        { r: 0, g: 184, b: 148, name: 'emerald' },     // emerald
-    ];
-
-    // Create paint ball particles — BIG and glossy
-    function createParticle() {
-        const color = colors[Math.floor(Math.random() * colors.length)];
-        const radius = Math.random() * 20 + 8;  // 8 to 28px — big paint balls!
-        return {
-            x: Math.random() * width,
-            y: Math.random() * height,
-            vx: (Math.random() - 0.5) * 0.4,
-            vy: (Math.random() - 0.5) * 0.4,
-            r: radius,
-            color: color,
-            baseVx: (Math.random() - 0.5) * 0.4,
-            baseVy: (Math.random() - 0.5) * 0.4,
-            opacity: Math.random() * 0.3 + 0.25,  // 0.25 – 0.55
-        };
-    }
-
-    for (let i = 0; i < PARTICLE_COUNT; i++) {
-        particles.push(createParticle());
+        initIcons();
     }
 
     function animate() {
         ctx.clearRect(0, 0, width, height);
-        const lineAlpha = isDark ? LINE_OPACITY * 1.5 : LINE_OPACITY;
 
-        // Update & draw paint balls
-        for (let i = 0; i < particles.length; i++) {
-            const p = particles[i];
-
-            // Mouse interaction — gentle attract
-            if (mouse.active) {
-                const dx = mouse.x - p.x;
-                const dy = mouse.y - p.y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist < MOUSE_RADIUS) {
-                    const force = (1 - dist / MOUSE_RADIUS) * 0.02;
-                    p.vx += dx * force;
-                    p.vy += dy * force;
-                }
-            }
-
-            // Damping — gently returns to base speed
-            p.vx += (p.baseVx - p.vx) * 0.01;
-            p.vy += (p.baseVy - p.vy) * 0.01;
-
-            p.x += p.vx;
-            p.y += p.vy;
-
-            // Wrap around edges
-            if (p.x < -40) p.x = width + 40;
-            if (p.x > width + 40) p.x = -40;
-            if (p.y < -40) p.y = height + 40;
-            if (p.y > height + 40) p.y = -40;
-
-            const c = p.color;
-            const alpha = p.opacity;
-
-            // Outer soft glow
-            ctx.save();
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.r * 1.6, 0, Math.PI * 2);
-            const glowGrad = ctx.createRadialGradient(p.x, p.y, p.r * 0.5, p.x, p.y, p.r * 1.6);
-            glowGrad.addColorStop(0, `rgba(${c.r},${c.g},${c.b},${alpha * 0.3})`);
-            glowGrad.addColorStop(1, `rgba(${c.r},${c.g},${c.b},0)`);
-            ctx.fillStyle = glowGrad;
-            ctx.fill();
-            ctx.restore();
-
-            // Main paint ball body — radial gradient for 3D glossy look
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-            const grad = ctx.createRadialGradient(
-                p.x - p.r * 0.3, p.y - p.r * 0.3, p.r * 0.1,  // highlight offset
-                p.x, p.y, p.r
-            );
-            // Bright highlight → main color → darker edge
-            const lighten = (v, amt) => Math.min(255, v + amt);
-            grad.addColorStop(0, `rgba(${lighten(c.r, 80)},${lighten(c.g, 80)},${lighten(c.b, 80)},${alpha})`);
-            grad.addColorStop(0.4, `rgba(${c.r},${c.g},${c.b},${alpha})`);
-            grad.addColorStop(1, `rgba(${Math.max(0, c.r - 40)},${Math.max(0, c.g - 40)},${Math.max(0, c.b - 40)},${alpha})`);
-            ctx.fillStyle = grad;
-            ctx.fill();
-
-            // Specular highlight — small white shine dot
-            ctx.beginPath();
-            ctx.arc(p.x - p.r * 0.25, p.y - p.r * 0.25, p.r * 0.3, 0, Math.PI * 2);
-            const specGrad = ctx.createRadialGradient(
-                p.x - p.r * 0.25, p.y - p.r * 0.25, 0,
-                p.x - p.r * 0.25, p.y - p.r * 0.25, p.r * 0.3
-            );
-            specGrad.addColorStop(0, `rgba(255,255,255,${alpha * 0.7})`);
-            specGrad.addColorStop(1, `rgba(255,255,255,0)`);
-            ctx.fillStyle = specGrad;
-            ctx.fill();
-
-            // Draw connections between nearby balls
-            for (let j = i + 1; j < particles.length; j++) {
-                const p2 = particles[j];
-                const dx = p.x - p2.x;
-                const dy = p.y - p2.y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-
-                if (dist < CONNECT_DIST) {
-                    const opacity = (1 - dist / CONNECT_DIST) * lineAlpha;
-                    ctx.beginPath();
-                    ctx.moveTo(p.x, p.y);
-                    ctx.lineTo(p2.x, p2.y);
-                    ctx.strokeStyle = `rgba(${c.r},${c.g},${c.b},${opacity})`;
-                    ctx.lineWidth = 1;
-                    ctx.stroke();
-                }
-            }
-
-            // Mouse connection lines
-            if (mouse.active) {
-                const dx = mouse.x - p.x;
-                const dy = mouse.y - p.y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist < MOUSE_RADIUS) {
-                    const opacity = (1 - dist / MOUSE_RADIUS) * 0.2;
-                    ctx.beginPath();
-                    ctx.moveTo(p.x, p.y);
-                    ctx.lineTo(mouse.x, mouse.y);
-                    ctx.strokeStyle = `rgba(${c.r},${c.g},${c.b},${opacity})`;
-                    ctx.lineWidth = 1.2;
-                    ctx.stroke();
-                }
-            }
+        for (let i = 0; i < icons.length; i++) {
+            icons[i].update();
+            icons[i].draw();
         }
 
-        requestAnimationFrame(animate);
+        animId = requestAnimationFrame(animate);
     }
-    animate();
+
+    resize();
+    animId = requestAnimationFrame(animate);
 
 })();

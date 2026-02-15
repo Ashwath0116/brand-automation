@@ -34,7 +34,13 @@
                 <option value="hi">हिंदी</option>
                 <option value="te">Telugu</option>
             </select>
-            <button class="theme-btn" onclick="toggleTheme()">🌙</button>
+            <select id="theme-select" onchange="changeTheme(this.value)" style="width: auto;">
+                <option value="light">☀️ Light</option>
+                <option value="dark">🌑 Dark</option>
+                <option value="ocean">🌊 Ocean</option>
+                <option value="sunset">🌅 Sunset</option>
+                <option value="cyber">👾 Cyber</option>
+            </select>
             <div class="nav-auth" id="navAuth">
                 <a href="/login.html" class="nav-login-btn" id="navLoginBtn">Login</a>
             </div>

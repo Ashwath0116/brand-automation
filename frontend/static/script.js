@@ -1,13 +1,16 @@
-// Theme Toggle Logic
-function toggleTheme() {
-    const body = document.body;
-    body.classList.toggle('dark-theme');
+// Theme Logic
+const THEMES = ['light', 'dark', 'ocean', 'sunset', 'cyber'];
 
-    const isDark = body.classList.contains('dark-theme');
-    const icon = document.getElementById('theme-icon');
-    icon.textContent = isDark ? '☀️' : '🌙';
+function changeTheme(theme) {
+    if (!THEMES.includes(theme)) return;
 
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    document.body.classList.remove('dark-theme', 'theme-ocean', 'theme-sunset', 'theme-cyber');
+
+    if (theme === 'dark') document.body.classList.add('dark-theme');
+    else if (theme !== 'light') document.body.classList.add(`theme-${theme}`);
+
+    localStorage.setItem('theme', theme);
+    console.log(`Theme set to: ${theme}`);
 }
 
 // Language Logic
@@ -24,11 +27,11 @@ function changeLanguage(lang) {
 
 // Load saved settings
 document.addEventListener('DOMContentLoaded', () => {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
-        document.body.classList.add('dark-theme');
-        document.getElementById('theme-icon').textContent = '☀️';
-    }
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    changeTheme(savedTheme);
+
+    const themeSelect = document.getElementById('theme-select');
+    if (themeSelect) themeSelect.value = savedTheme;
 
     const savedLang = localStorage.getItem('language');
     if (savedLang) {
@@ -121,19 +124,24 @@ async function generateLogo() {
         const { prompt, image_result } = response.data;
         const resultsDiv = document.getElementById(resultsDivId);
 
-        let imageHtml = '';
         if (image_result && image_result.image_url) {
-            imageHtml = `<img src="${image_result.image_url}" style="max-width:100%; border-radius:8px; margin-top:1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">`;
+            resultsDiv.innerHTML = `
+                <div class="logo-result-container" style="text-align:center; padding: 2rem; background: var(--surface); backdrop-filter: var(--glass-blur); border-radius: 16px; border: var(--glass-border); box-shadow: var(--sh-out);">
+                    <h3 style="margin-bottom: 1rem; color: var(--accent);">✨ Your AI Generated Logo</h3>
+                    <img src="${image_result.image_url}" id="generatedLogoImg" style="max-width:300px; width:100%; border-radius:12px; box-shadow: var(--sh-out); border: 1px solid rgba(255,255,255,0.2);">
+                    <div style="margin-top: 1.5rem; display: flex; gap: 1rem; justify-content: center;">
+                        <a href="${image_result.image_url}" download="BizForge_Logo.png" class="btn-primary" style="text-decoration:none; display:inline-block; width:auto; padding: 0.8rem 1.5rem;">
+                            Download Logo 📥
+                        </a>
+                    </div>
+                    <p style="margin-top: 1.5rem; font-size: 0.85rem; color: var(--text-dim); font-style: italic;">
+                        "${prompt}"
+                    </p>
+                </div>
+            `;
         } else {
-            imageHtml = `<p>Image generation failed or pending.</p>`;
+            resultsDiv.innerHTML = `<p style="color:red">Image generation failed: ${image_result?.error || 'Unknown error'}</p>`;
         }
-
-        resultsDiv.innerHTML = `
-            <div style="text-align:center;">
-                <p><strong>Prompt used:</strong> ${prompt}</p>
-                ${imageHtml}
-            </div>
-        `;
     } else {
         document.getElementById(resultsDivId).innerHTML = '<p style="color:red">Failed to generate logo.</p>';
     }
@@ -247,3 +255,31 @@ async function sendChatMessage() {
         document.getElementById(botMsgId).innerHTML = `<strong>AI:</strong> <span style="color:red">Error connecting to AI.</span>`;
     }
 }
+
+// ── Typing Animation ──
+document.addEventListener('DOMContentLoaded', () => {
+    const textElement = document.getElementById('typing-text');
+    const cursor = document.querySelector('.typing-cursor');
+    if (!textElement) return;
+
+    const textToType = "Empowering your brand with the speed of thought.";
+    let charIndex = 0;
+
+    function type() {
+        if (charIndex < textToType.length) {
+            textElement.textContent += textToType.charAt(charIndex);
+            charIndex++;
+            setTimeout(type, 40); // Typing speed
+        } else {
+            // Animation complete
+            setTimeout(() => {
+                cursor.style.animation = 'none';
+                cursor.style.opacity = '0';
+                cursor.style.transition = 'opacity 0.5s';
+            }, 2000);
+        }
+    }
+
+    // Start delay
+    setTimeout(type, 800);
+});

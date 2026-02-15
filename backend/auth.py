@@ -409,3 +409,80 @@ async def admin_delete_user(user_id: int, request: Request, db: DBSession = Depe
     db.delete(target)
     db.commit()
     return {"success": True}
+
+
+# ── Admin: Get activity logs ──
+@router.get("/admin/activity")
+async def admin_activity(
+    request: Request,
+    db: DBSession = Depends(get_db),
+    page: int = 1,
+    limit: int = 50,
+    action: str = "",
+    user_email: str = "",
+):
+    user = get_current_user(request, db)
+    if not user or not user.is_admin:
+        raise HTTPException(403, "Admin access required")
+
+    from .database import ActivityLog
+
+    query = db.query(ActivityLog).order_by(ActivityLog.created_at.desc())
+
+    # Filters
+    if action:
+        query = query.filter(ActivityLog.action == action)
+    if user_email:
+        query = query.filter(ActivityLog.user_email.ilike(f"%{user_email}%"))
+
+    total = query.count()
+    logs = query.offset((page - 1) * limit).limit(limit).all()
+
+    return {
+        "success": True,
+        "logs": [
+            {
+                "id": log.id,
+                "user_id": log.user_id,
+                "user_email": log.user_email or "Anonymous",
+                "action": log.action,
+                "request_data": log.request_data,
+                "response_data": log.response_data,
+                "status": log.status,
+                "ip_address": log.ip_address,
+                "created_at": log.created_at.isoformat() if log.created_at else None,
+            }
+            for log in logs
+        ],
+        "total": total,
+        "page": page,
+        "pages": (total + limit - 1) // limit,
+    }
+
+
+# ── Admin: Activity stats ──
+@router.get("/admin/activity/stats")
+async def admin_activity_stats(request: Request, db: DBSession = Depends(get_db)):
+    user = get_current_user(request, db)
+    if not user or not user.is_admin:
+        raise HTTPException(403, "Admin access required")
+
+    from .database import ActivityLog
+    from sqlalchemy import func
+
+    total = db.query(ActivityLog).count()
+    errors = db.query(ActivityLog).filter(ActivityLog.status == "error").count()
+
+    # Count per action type
+    action_counts = (
+        db.query(ActivityLog.action, func.count(ActivityLog.id))
+        .group_by(ActivityLog.action)
+        .all()
+    )
+
+    return {
+        "success": True,
+        "total_actions": total,
+        "total_errors": errors,
+        "by_action": {action: count for action, count in action_counts},
+    }

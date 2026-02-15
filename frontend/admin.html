@@ -5,13 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BizForge - Admin Dashboard</title>
-    <link rel="stylesheet" href="/static/style.css?v=16">
+    <link rel="stylesheet" href="/static/style.css?v=17">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         .admin-wrapper {
             min-height: 100vh;
             padding: 2rem;
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
@@ -45,10 +45,50 @@
             text-decoration: underline;
         }
 
+        /* Tabs */
+        .admin-tabs {
+            display: flex;
+            gap: .5rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 0;
+        }
+
+        .admin-tab {
+            padding: .8rem 1.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: .95rem;
+            font-weight: 600;
+            color: var(--text-dim);
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: all .2s;
+        }
+
+        .admin-tab:hover {
+            color: var(--text);
+        }
+
+        .admin-tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
         /* Stats cards */
         .stats-row {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 1rem;
             margin-bottom: 2rem;
         }
@@ -107,8 +147,41 @@
             opacity: .5;
         }
 
+        /* Filter row */
+        .filter-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-row select,
+        .filter-row input {
+            padding: .7rem 1rem;
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-size: .85rem;
+            color: var(--text);
+            font-family: inherit;
+            outline: none;
+            transition: border-color .3s;
+        }
+
+        .filter-row select:focus,
+        .filter-row input:focus {
+            border-color: var(--accent);
+        }
+
+        body.dark-theme .filter-row select,
+        body.dark-theme .filter-row option {
+            background: var(--card);
+            color: var(--text);
+        }
+
         /* Users table */
-        .users-card {
+        .data-card {
             background: var(--card);
             border-radius: 20px;
             box-shadow: var(--clay-shadow);
@@ -116,12 +189,12 @@
             overflow: hidden;
         }
 
-        .users-table {
+        .data-table {
             width: 100%;
             border-collapse: collapse;
         }
 
-        .users-table th {
+        .data-table th {
             padding: 1rem 1.2rem;
             text-align: left;
             font-size: .75rem;
@@ -133,7 +206,7 @@
             border-bottom: 1px solid var(--border);
         }
 
-        .users-table td {
+        .data-table td {
             padding: .9rem 1.2rem;
             font-size: .9rem;
             color: var(--text);
@@ -141,11 +214,11 @@
             vertical-align: middle;
         }
 
-        .users-table tr:last-child td {
+        .data-table tr:last-child td {
             border-bottom: none;
         }
 
-        .users-table tr:hover td {
+        .data-table tr:hover td {
             background: rgba(108, 92, 231, .03);
         }
 
@@ -216,6 +289,21 @@
             color: #ff5252;
         }
 
+        .badge-success {
+            background: rgba(85, 239, 196, .15);
+            color: #00b894;
+        }
+
+        .badge-error {
+            background: rgba(255, 82, 82, .1);
+            color: #ff5252;
+        }
+
+        .badge-action {
+            background: rgba(108, 92, 231, .1);
+            color: var(--accent);
+        }
+
         .delete-btn {
             background: none;
             border: 1px solid rgba(255, 82, 82, .3);
@@ -232,6 +320,126 @@
         .delete-btn:hover {
             background: rgba(255, 82, 82, .1);
             border-color: #ff5252;
+        }
+
+        /* Detail Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal-box {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 700px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .3);
+            border: 1px solid var(--border);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-dim);
+            padding: .2rem .5rem;
+            border-radius: 8px;
+            transition: background .2s;
+        }
+
+        .modal-close:hover {
+            background: rgba(108, 92, 231, .1);
+        }
+
+        .detail-section {
+            margin-bottom: 1.2rem;
+        }
+
+        .detail-label {
+            font-size: .75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+            margin-bottom: .4rem;
+        }
+
+        .detail-value {
+            background: var(--bg);
+            border-radius: 10px;
+            padding: 1rem;
+            font-size: .85rem;
+            color: var(--text);
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: .5rem;
+            margin-top: 1.5rem;
+        }
+
+        .pagination button {
+            padding: .5rem 1rem;
+            border: 1px solid var(--border);
+            background: var(--card);
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: .85rem;
+            color: var(--text);
+            transition: all .2s;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .pagination button:disabled {
+            opacity: .4;
+            cursor: not-allowed;
+        }
+
+        .pagination .page-info {
+            font-size: .85rem;
+            color: var(--text-dim);
+            padding: 0 .5rem;
         }
 
         /* Loading & empty states */
@@ -261,17 +469,26 @@
             margin-bottom: .5rem;
         }
 
+        /* Action icon mapping */
+        .action-icon {
+            margin-right: .3rem;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .admin-wrapper {
                 padding: 1rem;
             }
 
-            .users-table th:nth-child(4),
-            .users-table td:nth-child(4),
-            .users-table th:nth-child(5),
-            .users-table td:nth-child(5) {
+            .data-table th:nth-child(4),
+            .data-table td:nth-child(4),
+            .data-table th:nth-child(5),
+            .data-table td:nth-child(5) {
                 display: none;
+            }
+
+            .admin-tabs {
+                overflow-x: auto;
             }
         }
     </style>
@@ -288,48 +505,124 @@
             </div>
         </div>
 
-        <div class="stats-row">
-            <div class="stat-card">
-                <div class="stat-value" id="totalUsers">—</div>
-                <div class="stat-label">Total Users</div>
+        <!-- Tabs -->
+        <div class="admin-tabs">
+            <button class="admin-tab active" onclick="switchTab('users')">👥 Users</button>
+            <button class="admin-tab" onclick="switchTab('activity')">📋 User Activity</button>
+        </div>
+
+        <!-- ═══ USERS TAB ═══ -->
+        <div id="tab-users" class="tab-panel active">
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalUsers">—</div>
+                    <div class="stat-label">Total Users</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="localUsers">—</div>
+                    <div class="stat-label">Email Signups</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="googleUsers">—</div>
+                    <div class="stat-label">Google Users</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="githubUsers">—</div>
+                    <div class="stat-label">GitHub Users</div>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-value" id="localUsers">—</div>
-                <div class="stat-label">Email Signups</div>
+
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="🔍  Search users by name or email..."
+                    oninput="filterUsers()">
             </div>
-            <div class="stat-card">
-                <div class="stat-value" id="googleUsers">—</div>
-                <div class="stat-label">Google Users</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="githubUsers">—</div>
-                <div class="stat-label">GitHub Users</div>
+
+            <div class="data-card">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Provider</th>
+                            <th>Role</th>
+                            <th>Joined</th>
+                            <th>Last Login</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersBody">
+                        <tr>
+                            <td colspan="6" class="loading-state">Loading users...</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
-        <div class="search-bar">
-            <input type="text" id="searchInput" placeholder="🔍  Search users by name or email..."
-                oninput="filterUsers()">
-        </div>
+        <!-- ═══ ACTIVITY TAB ═══ -->
+        <div id="tab-activity" class="tab-panel">
+            <div class="stats-row" id="activityStats">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalActions">—</div>
+                    <div class="stat-label">Total Actions</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalErrors">—</div>
+                    <div class="stat-label">Errors</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statLogos">—</div>
+                    <div class="stat-label">Logos Generated</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statBrands">—</div>
+                    <div class="stat-label">Brand Names</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statContent">—</div>
+                    <div class="stat-label">Content Generated</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statChats">—</div>
+                    <div class="stat-label">Chat Messages</div>
+                </div>
+            </div>
 
-        <div class="users-card">
-            <table class="users-table">
-                <thead>
-                    <tr>
-                        <th>User</th>
-                        <th>Provider</th>
-                        <th>Role</th>
-                        <th>Joined</th>
-                        <th>Last Login</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="usersBody">
-                    <tr>
-                        <td colspan="6" class="loading-state">Loading users...</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="filter-row">
+                <select id="actionFilter" onchange="loadActivity()">
+                    <option value="">All Actions</option>
+                    <option value="generate_logo">🖼️ Logo Generation</option>
+                    <option value="generate_brand">🏷️ Brand Names</option>
+                    <option value="generate_content">📝 Content Generation</option>
+                    <option value="analyze_sentiment">💬 Sentiment Analysis</option>
+                    <option value="get_colors">🎨 Color Palette</option>
+                    <option value="chat">🤖 AI Chat</option>
+                </select>
+                <input type="text" id="activityEmailFilter" placeholder="Filter by email..."
+                    oninput="debounceLoadActivity()">
+            </div>
+
+            <div class="data-card">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>User</th>
+                            <th>Action</th>
+                            <th>Input</th>
+                            <th>Result Preview</th>
+                            <th>Status</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody id="activityBody">
+                        <tr>
+                            <td colspan="7" class="loading-state">Select a tab to load...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination" id="activityPagination"></div>
         </div>
     </div>
 
@@ -341,10 +634,56 @@
         <a href="/" class="admin-back">← Back to BizForge</a>
     </div>
 
+    <!-- Detail Modal -->
+    <div class="modal-overlay" id="detailModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 id="modalTitle">Activity Detail</h3>
+                <button class="modal-close" onclick="closeModal()">✕</button>
+            </div>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
     <script>
         let allUsers = [];
+        let activityPage = 1;
+        let activityLoaded = false;
+        let debounceTimer = null;
 
-        // Check admin access
+        const ACTION_ICONS = {
+            generate_logo: '🖼️',
+            generate_brand: '🏷️',
+            generate_content: '📝',
+            analyze_sentiment: '💬',
+            get_colors: '🎨',
+            chat: '🤖'
+        };
+
+        const ACTION_LABELS = {
+            generate_logo: 'Logo Generation',
+            generate_brand: 'Brand Names',
+            generate_content: 'Content Gen',
+            analyze_sentiment: 'Sentiment',
+            get_colors: 'Color Palette',
+            chat: 'AI Chat'
+        };
+
+        // ── Tab Switching ──
+        function switchTab(tab) {
+            document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById(`tab-${tab}`).classList.add('active');
+
+            if (tab === 'activity' && !activityLoaded) {
+                loadActivity();
+                loadActivityStats();
+                activityLoaded = true;
+            }
+        }
+
+        // ── Init ──
         async function init() {
             try {
                 const resp = await fetch('/api/auth/me');
@@ -362,6 +701,7 @@
             }
         }
 
+        // ═══ USERS ═══
         async function loadUsers() {
             try {
                 const resp = await fetch('/api/auth/admin/users');
@@ -448,6 +788,280 @@
             }
         }
 
+        // ═══ ACTIVITY ═══
+        async function loadActivityStats() {
+            try {
+                const resp = await fetch('/api/auth/admin/activity/stats');
+                const data = await resp.json();
+                if (!data.success) return;
+
+                document.getElementById('totalActions').textContent = data.total_actions || 0;
+                document.getElementById('totalErrors').textContent = data.total_errors || 0;
+                document.getElementById('statLogos').textContent = data.by_action?.generate_logo || 0;
+                document.getElementById('statBrands').textContent = data.by_action?.generate_brand || 0;
+                document.getElementById('statContent').textContent = data.by_action?.generate_content || 0;
+                document.getElementById('statChats').textContent = data.by_action?.chat || 0;
+            } catch (e) {
+                console.error('Failed to load activity stats', e);
+            }
+        }
+
+        async function loadActivity(page = 1) {
+            activityPage = page;
+            const action = document.getElementById('actionFilter').value;
+            const email = document.getElementById('activityEmailFilter').value;
+
+            const params = new URLSearchParams({ page, limit: 30 });
+            if (action) params.append('action', action);
+            if (email) params.append('user_email', email);
+
+            const tbody = document.getElementById('activityBody');
+            tbody.innerHTML = '<tr><td colspan="7" class="loading-state">Loading activity...</td></tr>';
+
+            try {
+                const resp = await fetch(`/api/auth/admin/activity?${params}`);
+                const data = await resp.json();
+                if (!data.success) throw new Error('Failed');
+
+                renderActivity(data.logs);
+                renderPagination(data.page, data.pages, data.total);
+            } catch (e) {
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Failed to load activity</td></tr>';
+            }
+        }
+
+        function getInputPreview(log) {
+            try {
+                const req = JSON.parse(log.request_data);
+                if (req.brand_name) return `<strong>${req.brand_name}</strong>` + (req.industry ? ` · ${req.industry}` : '');
+                if (req.message) return escapeHtml(req.message.substring(0, 60)) + (req.message.length > 60 ? '…' : '');
+                if (req.brand_description) return escapeHtml(req.brand_description.substring(0, 60)) + (req.brand_description.length > 60 ? '…' : '');
+                if (req.text) return escapeHtml(req.text.substring(0, 60)) + (req.text.length > 60 ? '…' : '');
+                if (req.tone) return `Tone: ${req.tone}` + (req.industry ? ` · ${req.industry}` : '');
+                return Object.values(req).filter(Boolean)[0]?.toString().substring(0, 50) || '—';
+            } catch (e) { return '—'; }
+        }
+
+        function getResultPreview(log) {
+            try {
+                const res = JSON.parse(log.response_data);
+                if (log.status === 'error') return `<span style="color:#ff5252;">❌ ${escapeHtml((res.error || 'Error').substring(0, 50))}</span>`;
+
+                switch (log.action) {
+                    case 'generate_logo':
+                        return `<span style="color:var(--accent);">🖼️ Prompt generated</span>`;
+                    case 'generate_brand':
+                        const names = res.brand_names;
+                        if (Array.isArray(names)) return `<span style="color:#00b894;">${names.length} names</span>`;
+                        return `<span style="color:#00b894;">✅ Generated</span>`;
+                    case 'generate_content':
+                        const content = res.generated_content;
+                        if (typeof content === 'string') return escapeHtml(content.substring(0, 60)) + (content.length > 60 ? '…' : '');
+                        return `<span style="color:#00b894;">✅ Generated</span>`;
+                    case 'analyze_sentiment':
+                        const analysis = res.analysis_result;
+                        if (typeof analysis === 'string') return escapeHtml(analysis.substring(0, 60)) + '…';
+                        return `<span style="color:#00b894;">✅ Analyzed</span>`;
+                    case 'get_colors':
+                        return `<span style="color:#00b894;">🎨 Palette generated</span>`;
+                    case 'chat':
+                        const reply = res.ai_response;
+                        if (typeof reply === 'string') return escapeHtml(reply.substring(0, 60)) + (reply.length > 60 ? '…' : '');
+                        return `<span style="color:#00b894;">✅ Replied</span>`;
+                    default:
+                        return `<span style="color:#00b894;">✅ Done</span>`;
+                }
+            } catch (e) { return '—'; }
+        }
+
+        function renderActivity(logs) {
+            const tbody = document.getElementById('activityBody');
+            if (logs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No activity found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = logs.map(log => {
+                const time = log.created_at ? new Date(log.created_at).toLocaleString() : '—';
+                const icon = ACTION_ICONS[log.action] || '⚡';
+                const label = ACTION_LABELS[log.action] || log.action;
+                const statusClass = log.status === 'success' ? 'badge-success' : 'badge-error';
+                const inputPreview = getInputPreview(log);
+                const resultPreview = getResultPreview(log);
+
+                return `
+                    <tr>
+                        <td style="font-size:.8rem;white-space:nowrap;">${time}</td>
+                        <td>
+                            <div style="font-weight:600;font-size:.85rem;">${escapeHtml(log.user_email)}</div>
+                            <div style="font-size:.7rem;color:var(--text-dim);">IP: ${log.ip_address || '—'}</div>
+                        </td>
+                        <td><span class="badge badge-action">${icon} ${label}</span></td>
+                        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.85rem;">${inputPreview}</td>
+                        <td style="max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.82rem;">${resultPreview}</td>
+                        <td><span class="badge ${statusClass}">${log.status}</span></td>
+                        <td><button class="delete-btn" style="border-color:var(--accent);color:var(--accent);" onclick='showDetail(${JSON.stringify(log).replace(/'/g, "&#39;")})'>View</button></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderPagination(current, total, totalItems) {
+            const el = document.getElementById('activityPagination');
+            if (total <= 1) {
+                el.innerHTML = totalItems > 0 ? `<span class="page-info">${totalItems} records</span>` : '';
+                return;
+            }
+            el.innerHTML = `
+                <button ${current <= 1 ? 'disabled' : ''} onclick="loadActivity(${current - 1})">← Prev</button>
+                <span class="page-info">Page ${current} of ${total} (${totalItems} records)</span>
+                <button ${current >= total ? 'disabled' : ''} onclick="loadActivity(${current + 1})">Next →</button>
+            `;
+        }
+
+        function debounceLoadActivity() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => loadActivity(1), 400);
+        }
+
+        // ── Detail Modal ──
+        function formatRequestDetail(action, reqData) {
+            let html = '';
+            switch (action) {
+                case 'generate_logo':
+                    html += `<div class="detail-section"><div class="detail-label">Brand Name</div><div class="detail-value">${escapeHtml(reqData.brand_name || '—')}</div></div>`;
+                    html += `<div class="detail-section"><div class="detail-label">Industry</div><div class="detail-value">${escapeHtml(reqData.industry || '—')}</div></div>`;
+                    if (reqData.keywords) html += `<div class="detail-section"><div class="detail-label">Keywords</div><div class="detail-value">${escapeHtml(Array.isArray(reqData.keywords) ? reqData.keywords.join(', ') : reqData.keywords)}</div></div>`;
+                    break;
+                case 'generate_brand':
+                    html += `<div class="detail-section"><div class="detail-label">Industry</div><div class="detail-value">${escapeHtml(reqData.industry || '—')}</div></div>`;
+                    if (reqData.keywords) html += `<div class="detail-section"><div class="detail-label">Keywords</div><div class="detail-value">${escapeHtml(Array.isArray(reqData.keywords) ? reqData.keywords.join(', ') : reqData.keywords)}</div></div>`;
+                    html += `<div class="detail-section"><div class="detail-label">Tone</div><div class="detail-value">${escapeHtml(reqData.tone || '—')}</div></div>`;
+                    html += `<div class="detail-section"><div class="detail-label">Language</div><div class="detail-value">${escapeHtml(reqData.language || '—')}</div></div>`;
+                    break;
+                case 'generate_content':
+                    html += `<div class="detail-section"><div class="detail-label">Brand Description</div><div class="detail-value">${escapeHtml(reqData.brand_description || '—')}</div></div>`;
+                    html += `<div class="detail-section"><div class="detail-label">Content Type</div><div class="detail-value">${escapeHtml(reqData.content_type || '—')}</div></div>`;
+                    html += `<div class="detail-section"><div class="detail-label">Tone</div><div class="detail-value">${escapeHtml(reqData.tone || '—')}</div></div>`;
+                    break;
+                case 'analyze_sentiment':
+                    html += `<div class="detail-section"><div class="detail-label">Text Analyzed</div><div class="detail-value">${escapeHtml(reqData.text || '—')}</div></div>`;
+                    html += `<div class="detail-section"><div class="detail-label">Brand Tone</div><div class="detail-value">${escapeHtml(reqData.brand_tone || '—')}</div></div>`;
+                    break;
+                case 'get_colors':
+                    html += `<div class="detail-section"><div class="detail-label">Tone</div><div class="detail-value">${escapeHtml(reqData.tone || '—')}</div></div>`;
+                    html += `<div class="detail-section"><div class="detail-label">Industry</div><div class="detail-value">${escapeHtml(reqData.industry || '—')}</div></div>`;
+                    break;
+                case 'chat':
+                    html += `<div class="detail-section"><div class="detail-label">💬 User Message</div><div class="detail-value" style="background:rgba(108,92,231,.06);border-left:3px solid var(--accent);">${escapeHtml(reqData.message || '—')}</div></div>`;
+                    break;
+                default:
+                    html += `<div class="detail-section"><div class="detail-label">Request Data</div><div class="detail-value">${escapeHtml(JSON.stringify(reqData, null, 2))}</div></div>`;
+            }
+            return html;
+        }
+
+        function formatResponseDetail(action, resData) {
+            let html = '';
+            if (resData.error) {
+                html += `<div class="detail-section"><div class="detail-label">❌ Error</div><div class="detail-value" style="border-left:3px solid #ff5252;background:rgba(255,82,82,.05);">${escapeHtml(resData.error)}</div></div>`;
+                return html;
+            }
+
+            switch (action) {
+                case 'generate_logo':
+                    if (resData.prompt) html += `<div class="detail-section"><div class="detail-label">🧠 AI Prompt Generated</div><div class="detail-value">${escapeHtml(resData.prompt)}</div></div>`;
+                    if (resData.image_url) {
+                        const imgSrc = typeof resData.image_url === 'string' ? resData.image_url : (resData.image_url?.url || resData.image_url?.local_url || '');
+                        if (imgSrc) html += `<div class="detail-section"><div class="detail-label">🖼️ Generated Logo</div><div class="detail-value" style="text-align:center;"><img src="${escapeHtml(imgSrc)}" style="max-width:300px;max-height:200px;border-radius:12px;" onerror="this.style.display='none'"><br><a href="${escapeHtml(imgSrc)}" target="_blank" style="font-size:.8rem;color:var(--accent);">Open full image ↗</a></div></div>`;
+                    }
+                    break;
+                case 'generate_brand':
+                    const names = resData.brand_names;
+                    if (typeof names === 'string') {
+                        html += `<div class="detail-section"><div class="detail-label">🏷️ Generated Brand Names</div><div class="detail-value">${escapeHtml(names)}</div></div>`;
+                    } else if (Array.isArray(names)) {
+                        html += `<div class="detail-section"><div class="detail-label">🏷️ Generated Brand Names (${names.length})</div><div class="detail-value"><ul style="margin:0;padding-left:1.5rem;">${names.map(n => `<li style="margin-bottom:.3rem;">${escapeHtml(typeof n === 'string' ? n : JSON.stringify(n))}</li>`).join('')}</ul></div></div>`;
+                    }
+                    break;
+                case 'generate_content':
+                    const content = resData.generated_content;
+                    html += `<div class="detail-section"><div class="detail-label">📝 Generated Content</div><div class="detail-value" style="white-space:pre-wrap;">${escapeHtml(typeof content === 'string' ? content : JSON.stringify(content, null, 2))}</div></div>`;
+                    break;
+                case 'analyze_sentiment':
+                    const analysis = resData.analysis_result;
+                    html += `<div class="detail-section"><div class="detail-label">📊 Sentiment Analysis Result</div><div class="detail-value" style="white-space:pre-wrap;">${escapeHtml(typeof analysis === 'string' ? analysis : JSON.stringify(analysis, null, 2))}</div></div>`;
+                    break;
+                case 'get_colors':
+                    const palette = resData.palette;
+                    if (typeof palette === 'string') {
+                        html += `<div class="detail-section"><div class="detail-label">🎨 Color Palette</div><div class="detail-value" style="white-space:pre-wrap;">${escapeHtml(palette)}</div></div>`;
+                    } else {
+                        html += `<div class="detail-section"><div class="detail-label">🎨 Color Palette</div><div class="detail-value">${escapeHtml(JSON.stringify(palette, null, 2))}</div></div>`;
+                    }
+                    break;
+                case 'chat':
+                    const reply = resData.ai_response;
+                    html += `<div class="detail-section"><div class="detail-label">🤖 AI Response</div><div class="detail-value" style="background:rgba(85,239,196,.06);border-left:3px solid #00b894;white-space:pre-wrap;">${escapeHtml(typeof reply === 'string' ? reply : JSON.stringify(reply, null, 2))}</div></div>`;
+                    break;
+                default:
+                    html += `<div class="detail-section"><div class="detail-label">Response</div><div class="detail-value">${escapeHtml(JSON.stringify(resData, null, 2))}</div></div>`;
+            }
+            return html;
+        }
+
+        function showDetail(log) {
+            const icon = ACTION_ICONS[log.action] || '⚡';
+            const label = ACTION_LABELS[log.action] || log.action;
+            document.getElementById('modalTitle').textContent = `${icon} ${label} — Full Detail`;
+
+            let reqData = {};
+            let resData = {};
+            try { reqData = JSON.parse(log.request_data); } catch (e) { }
+            try { resData = JSON.parse(log.response_data); } catch (e) { }
+
+            let html = '';
+
+            // Header info
+            html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.2rem;">`;
+            html += `<div class="detail-section" style="margin:0;"><div class="detail-label">👤 User</div><div class="detail-value">${escapeHtml(log.user_email)} (ID: ${log.user_id || 'Anonymous'})</div></div>`;
+            html += `<div class="detail-section" style="margin:0;"><div class="detail-label">🕐 Time</div><div class="detail-value">${log.created_at ? new Date(log.created_at).toLocaleString() : '—'}</div></div>`;
+            html += `</div>`;
+            html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.2rem;">`;
+            html += `<div class="detail-section" style="margin:0;"><div class="detail-label">📡 Status</div><div class="detail-value"><span class="badge ${log.status === 'success' ? 'badge-success' : 'badge-error'}">${log.status}</span></div></div>`;
+            html += `<div class="detail-section" style="margin:0;"><div class="detail-label">🌐 IP Address</div><div class="detail-value">${log.ip_address || '—'}</div></div>`;
+            html += `</div>`;
+
+            // Separator
+            html += `<hr style="border:none;border-top:1px solid var(--border);margin:1rem 0;">`;
+            html += `<div style="font-weight:700;font-size:.9rem;color:var(--text);margin-bottom:.8rem;">📥 What the user sent</div>`;
+            html += formatRequestDetail(log.action, reqData);
+
+            html += `<hr style="border:none;border-top:1px solid var(--border);margin:1rem 0;">`;
+            html += `<div style="font-weight:700;font-size:.9rem;color:var(--text);margin-bottom:.8rem;">📤 What they received</div>`;
+            html += formatResponseDetail(log.action, resData);
+
+            document.getElementById('modalBody').innerHTML = html;
+
+            document.getElementById('detailModal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('detailModal').classList.remove('show');
+        }
+
+        // Close modal on overlay click
+        document.getElementById('detailModal').addEventListener('click', e => {
+            if (e.target === e.currentTarget) closeModal();
+        });
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // ── Logout ──
         async function handleLogout() {
             try {
                 await fetch('/api/auth/logout', { method: 'POST' });
@@ -462,6 +1076,10 @@
         // Apply saved theme
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme === 'dark') document.body.classList.replace('light-theme', 'dark-theme');
+        else if (savedTheme && savedTheme !== 'light') {
+            document.body.classList.remove('light-theme');
+            document.body.classList.add(`theme-${savedTheme}`);
+        }
     </script>
 </body>
 

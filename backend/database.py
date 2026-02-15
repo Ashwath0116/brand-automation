@@ -2,7 +2,7 @@
 BizForge — Database Layer
 SQLAlchemy + SQLite for user storage
 """
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean, Text, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
@@ -36,6 +36,21 @@ class Session(Base):
     id = Column(Integer, primary_key=True, index=True)
     token = Column(String, unique=True, index=True, nullable=False)
     user_id = Column(Integer, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class ActivityLog(Base):
+    """Tracks every user action: what tool they used, their input, and the AI response."""
+    __tablename__ = "activity_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # null = anonymous
+    user_email = Column(String, nullable=True)
+    action = Column(String, nullable=False)  # e.g. generate_logo, generate_brand, chat, etc.
+    request_data = Column(Text, nullable=True)  # JSON string of the input
+    response_data = Column(Text, nullable=True)  # JSON string of the output
+    status = Column(String, default="success")  # success / error
+    ip_address = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
 

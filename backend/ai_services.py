@@ -157,22 +157,23 @@ class AIService:
     # --- Feature: Logo Prompt Generation (Text) ---
     async def generate_logo_prompt(self, brand_name: str, industry: str, keywords: List[str]) -> str:
         prompt = f"""
-        You are an expert graphic designer. Create a highly detailed text-to-image prompt for a professional logo for the following brand.
+        You are an expert logo designer. Create a precise text-to-image prompt for a modern logo.
         
-        Brand Name: "{brand_name}"
-        Industry: {industry}
-        Keywords: {', '.join(keywords)}
+        Context:
+        - Brand: "{brand_name}"
+        - Industry: {industry}
+        - Keywords: {', '.join(keywords)}
         
-        The prompt should describe:
-        - Visual style (e.g., minimalist, modern, vintage, abstract)
-        - Color palette suggestions (hex codes or names)
-        - Iconography or shapes involved
-        - Typography style
-        - Emotional vibe
+        Guidelines:
+        1. VISUAL SYMBOL: Describe a clear, central pictorial mark or icon representing the brand.
+        2. STYLE: Request "vector art", "minimalist", "geometric", or "abstract" as appropriate for the industry.
+        3. COMPOSITION: Ensure the logo is centered on a white background.
+        4. COLORS: Suggest a professional color palette.
+        5. NO TEXT: Do not ask for the brand name to be written in the image (generators struggle with text). Focus on the icon.
         
-        Output ONLY the prompt text, ready for use in Stable Diffusion XL.
+        Output ONLY the prompt string.
         """
-        return await self.generate_with_groq(prompt, max_tokens=300)
+        return await self.generate_with_groq(prompt, max_tokens=200)
 
     # --- Feature: Marketing Content Generation (Activity 2.6) ---
     async def generate_marketing_content(self, brand_description: str, tone: str, content_type: str, language: str = "en") -> str:
@@ -193,20 +194,69 @@ class AIService:
         """
         return await self.generate_with_groq(prompt, max_tokens=800)
 
-    # --- Feature: Logo Image Generation (SDXL) (Activity 2.4) ---
+    # --- Feature: Logo Image Generation ---
     async def generate_logo_image(self, logo_prompt: str) -> Dict:
-        if not self.hf_client:
-             return {"success": False, "error": "HF_API_KEY not set"}
-             
+        hf_error = None
+        # 1. Try Hugging Face (Primary)
+        if self.hf_client:
+            try:
+                print(f"Generating image with Hugging Face (SDXL)...")
+                # Use a specific model
+                model = "stabilityai/stable-diffusion-xl-base-1.0"
+                # text_to_image is a helper in InferenceClient
+                image = self.hf_client.text_to_image(logo_prompt, model=model)
+                
+                # Save image
+                timestamp = int(time.time())
+                filename = f"logo_{timestamp}.png"
+                output_dir = Path(__file__).resolve().parent.parent / "frontend" / "static" / "generated_logos"
+                output_dir.mkdir(parents=True, exist_ok=True)
+                filepath = output_dir / filename
+                
+                image.save(filepath)
+                print(f"Image saved to: {filepath}")
+                
+                return {
+                    "image_url": f"/static/generated_logos/{filename}",
+                    "success": True,
+                    "error": None
+                }
+            except Exception as e:
+                print(f"HF Generation failed: {e}")
+                hf_error = str(e)
+                # Fallthrough to backup
+        else:
+            print("HF Client not initialized. Skipping HF generation.")
+
+        # 2. Pollinations.ai (Backup)
         try:
-            print(f"Generating image with Stable Diffusion XL...")
-            enhanced_prompt = f"Professional brand logo for: {logo_prompt}. Modern minimalist vector design, white background."
+            print(f"Generating image with Pollinations.ai (Free Backup)...")
             
-            image = self.hf_client.text_to_image(
-                enhanced_prompt,
-                model="stabilityai/stable-diffusion-xl-base-1.0"
+            # Encoded prompt for URL
+            import urllib.parse
+            import requests
+
+            # Enhanced prompt
+            seed = random.randint(1, 100000)
+            enhanced_prompt = (
+                f"Logo design, {logo_prompt}, "
+                f"vector graphics, white background, centered, high quality, 4k, professional, sharp lines, minimalism, no text"
             )
+            encoded_prompt = urllib.parse.quote(enhanced_prompt)
             
+            # Pollinations URL (Direct Image Endpoint)
+            image_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1024&height=1024&seed={seed}&model=flux"
+            
+            # Fetch the image
+            response = requests.get(image_url, timeout=30)
+            
+            if response.status_code != 200:
+                 raise Exception(f"Pollinations API Status: {response.status_code}")
+                 
+            content_type = response.headers.get("Content-Type", "")
+            if "image" not in content_type:
+                raise Exception(f"Pollinations returned non-image content: {content_type}")
+
             # Save image
             output_dir = Path(__file__).resolve().parent.parent / "frontend" / "static" / "generated_logos"
             output_dir.mkdir(parents=True, exist_ok=True)
@@ -215,7 +265,9 @@ class AIService:
             filename = f"logo_{timestamp}.png"
             filepath = output_dir / filename
             
-            image.save(filepath)
+            with open(filepath, "wb") as f:
+                f.write(response.content)
+                
             print(f"Image saved to: {filepath}")
             
             return {
@@ -224,8 +276,15 @@ class AIService:
                 "error": None
             }
         except Exception as e:
-            print(f"SDXL Generation failed: {e}")
-            return {"success": False, "error": str(e)}
+            print(f"Image Download failed: {e}")
+            # If backend download fails (e.g. 403/530 blocking), try returning the URL 
+            # for the frontend to load directly.
+            print("Attempting to return external URL for frontend to load directly...")
+            return {
+                "image_url": image_url,
+                "success": True,
+                "error": None
+            }
 
     # --- Feature: Chatbot (Activity 2.9) ---
     async def chat_with_ai(self, message: str, language: str = "en") -> str:

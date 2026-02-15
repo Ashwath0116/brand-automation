@@ -31,9 +31,13 @@
                 <option value="de">Deutsch</option>
                 <option value="hi">हिंदी</option>
             </select>
-            <button class="theme-btn" onclick="toggleTheme()" aria-label="Toggle Theme">
-                <span id="theme-icon">🌙</span>
-            </button>
+            <select id="theme-select" onchange="changeTheme(this.value)" style="width: auto;">
+                <option value="light">☀️ Light</option>
+                <option value="dark">🌑 Dark</option>
+                <option value="ocean">🌊 Ocean</option>
+                <option value="sunset">🌅 Sunset</option>
+                <option value="cyber">👾 Cyber</option>
+            </select>
             <div class="nav-auth" id="navAuth">
                 <a href="/login.html" class="nav-login-btn" id="navLoginBtn">Login</a>
             </div>
@@ -44,7 +48,11 @@
     <header class="hero">
         <div class="hero-content">
             <h1>Build Your Brand with <span class="gradient-text">AI</span></h1>
-            <p>Create stunning brand names, logos, marketing content, and complete design systems in seconds.</p>
+            <div class="typing-wrapper">
+                <span id="typing-text"></span><span class="typing-cursor">|</span>
+            </div>
+            <p style="margin-top: 1rem;">Create stunning brand names, logos, marketing content, and complete design
+                systems in seconds.</p>
             <a href="/branding.html" class="cta-button">Get Started →</a>
         </div>
     </header>
