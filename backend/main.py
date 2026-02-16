@@ -11,10 +11,12 @@ from pydub import AudioSegment
 import io
 
 # Import local modules
-from .models import BrandingRequest, BrandNameRequest, ContentGenerationRequest, SentimentAnalysisRequest, ColorPaletteRequest, ChatRequest
+from .models import BrandingRequest, BrandNameRequest, ContentGenerationRequest, SentimentAnalysisRequest, ColorPaletteRequest, ChatRequest, SaveItemRequest
 from .ai_services import AIService
 from .auth import router as auth_router, get_current_user
-from .database import init_db, get_db, ActivityLog, SessionLocal
+from .database import init_db, get_db, ActivityLog, SessionLocal, SavedItem
+from sqlalchemy.orm import Session
+from fastapi import Depends
 
 app = FastAPI()
 
@@ -89,7 +91,8 @@ async def generate_logo_endpoint(request: Request, req: BrandingRequest):
         prompt_result = await ai_service.generate_logo_prompt(
             req.brand_name, 
             req.industry or "General",
-            req.keywords
+            req.keywords,
+            req.description
         )
         image_result = await ai_service.generate_logo_image(prompt_result)
         
@@ -213,6 +216,50 @@ async def chat_endpoint(request: Request, req: ChatRequest):
     except Exception as e:
         log_activity(request, "chat", req_data, {"error": str(e)}, status="error")
         raise HTTPException(status_code=500, detail=str(e))
+
+# ── Saved Items API ──
+@app.post("/api/save-item")
+async def save_item_endpoint(request: Request, req: SaveItemRequest, db: Session = Depends(get_db)):
+    user = get_current_user(request, db)
+    if not user:
+        # Require login for saving
+        raise HTTPException(status_code=401, detail="Please login to save items.")
+    
+    # Store content as JSON string
+    content_str = json.dumps(req.content)
+    
+    item = SavedItem(
+        user_id=user.id,
+        item_type=req.item_type,
+        content=content_str,
+        meta_info=req.meta_info
+    )
+    db.add(item)
+    db.commit()
+    db.refresh(item)
+    return {"success": True, "id": item.id}
+
+@app.get("/api/saved-items")
+async def get_saved_items_endpoint(request: Request, db: Session = Depends(get_db)):
+    user = get_current_user(request, db)
+    if not user:
+        raise HTTPException(status_code=401, detail="Please login to view saved items.")
+    
+    items = db.query(SavedItem).filter(SavedItem.user_id == user.id).order_by(SavedItem.created_at.desc()).all()
+    
+    return {
+        "success": True, 
+        "data": [
+            {
+                "id": i.id,
+                "type": i.item_type,
+                "content": json.loads(i.content),
+                "meta_info": i.meta_info,
+                "created_at": i.created_at.isoformat()
+            } 
+            for i in items
+        ]
+    }
 
 # Frontend Routing
 @app.get("/{page}.html")

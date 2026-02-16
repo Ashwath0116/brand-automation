@@ -54,6 +54,18 @@ class ActivityLog(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
+class SavedItem(Base):
+    """Store user's favorite generations (Logos, Names, Palettes)."""
+    __tablename__ = "saved_items"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    item_type = Column(String, nullable=False)  # 'logo', 'brand_name', 'palette'
+    content = Column(Text, nullable=False)  # JSON string of the item details
+    meta_info = Column(Text, nullable=True) # Optional extra info (e.g. prompt used)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
 def init_db():
     """Create all tables if they don't exist."""
     Base.metadata.create_all(bind=engine)

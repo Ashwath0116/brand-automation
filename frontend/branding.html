@@ -98,7 +98,12 @@
             </div>
             <div class="form-group">
                 <label>Keywords/Style</label>
-                <input type="text" id="logo-keywords" placeholder="e.g. modern, circle, beans">
+                <input type="text" id="logo-keywords" placeholder="e.g. minimalist, bold, vintage">
+            </div>
+            <div class="form-group">
+                <label>Detailed Description</label>
+                <textarea id="logo-description" rows="3"
+                    placeholder="Describe the logo you have in mind (e.g., A minimalist fox head icon, orange and white, clean lines)..."></textarea>
             </div>
             <button class="btn-primary" onclick="generateLogo()">Generate Logo</button>
             <div id="logo-results" class="result-box" style="display:none;"></div>
@@ -178,6 +183,7 @@
         </div>
 
     </div>
+
 
     <script src="/static/vanilla-tilt.min.js"></script>
     <script>

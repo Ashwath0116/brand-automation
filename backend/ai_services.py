@@ -155,7 +155,9 @@ class AIService:
             return results
 
     # --- Feature: Logo Prompt Generation (Text) ---
-    async def generate_logo_prompt(self, brand_name: str, industry: str, keywords: List[str]) -> str:
+    async def generate_logo_prompt(self, brand_name: str, industry: str, keywords: List[str], description: str = None) -> str:
+        user_vision = f'- User Vision: "{description}"' if description else ""
+        
         prompt = f"""
         You are an expert logo designer. Create a precise text-to-image prompt for a modern logo.
         
@@ -163,6 +165,7 @@ class AIService:
         - Brand: "{brand_name}"
         - Industry: {industry}
         - Keywords: {', '.join(keywords)}
+        {user_vision}
         
         Guidelines:
         1. VISUAL SYMBOL: Describe a clear, central pictorial mark or icon representing the brand.
@@ -170,6 +173,7 @@ class AIService:
         3. COMPOSITION: Ensure the logo is centered on a white background.
         4. COLORS: Suggest a professional color palette.
         5. NO TEXT: Do not ask for the brand name to be written in the image (generators struggle with text). Focus on the icon.
+        6. USER VISION: If a user vision is provided, prioritize it above other suggestions.
         
         Output ONLY the prompt string.
         """
@@ -203,8 +207,16 @@ class AIService:
                 print(f"Generating image with Hugging Face (SDXL)...")
                 # Use a specific model
                 model = "stabilityai/stable-diffusion-xl-base-1.0"
+                # Enhanced Prompt for HF
+                enhanced_hf_prompt = f"minimalist vector logo, flat design, white background, simple, iconic, {logo_prompt}, dribbble style, 8k, no text"
+                negative_prompt = "text, watermark, realistic, photo, 3d render, complex, busy, gradient, shadow, low quality, blurry"
+                
                 # text_to_image is a helper in InferenceClient
-                image = self.hf_client.text_to_image(logo_prompt, model=model)
+                image = self.hf_client.text_to_image(
+                    enhanced_hf_prompt, 
+                    model=model,
+                    negative_prompt=negative_prompt
+                )
                 
                 # Save image
                 timestamp = int(time.time())

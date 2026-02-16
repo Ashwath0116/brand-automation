@@ -14,8 +14,10 @@
             if (data.success && data.user) {
                 const u = data.user;
                 const initials = (u.name || 'U').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+
+                // If avatar_url exists, try to show it, but fallback to initials on error
                 const avatarInner = u.avatar_url
-                    ? `<img src="${u.avatar_url}" alt="">`
+                    ? `<img src="${u.avatar_url}" alt="${u.name}" onerror="this.parentElement.innerText='${initials}'">`
                     : initials;
 
                 navAuth.innerHTML = `

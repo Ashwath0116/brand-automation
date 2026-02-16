@@ -28,3 +28,4 @@ Antigravity.exe
 *.docx
 temp_audio.wav
 fix_admin.py
+frontend/static/generated_logos/
